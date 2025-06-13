@@ -26,13 +26,11 @@ interface Message {
 }
 
 // Add formatTimestamp function before the ChatPage component
-const formatTimestamp = (date: Date): string => {
-    return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-    })
+const formatTimestamp = (date: Date) => {
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    const seconds = date.getSeconds().toString().padStart(2, '0')
+    return `${hours}:${minutes}:${seconds}`
 }
 
 export default function ChatPage() {
@@ -73,11 +71,14 @@ export default function ChatPage() {
         e.preventDefault()
         if (!inputMessage.trim()) return
 
+        const timestamp = new Date()
+        timestamp.setMilliseconds(0) // Remove milliseconds for consistency
+
         const newMessage: Message = {
             id: Date.now().toString(),
             type: 'user',
             content: inputMessage,
-            timestamp: new Date()
+            timestamp
         }
 
         setMessages(prev => [...prev, newMessage])
@@ -103,7 +104,7 @@ export default function ChatPage() {
                 id: (Date.now() + 1).toString(),
                 type: 'ai',
                 content: data.response,
-                timestamp: new Date(),
+                timestamp,
                 suggestions: data.suggestions || []
             }
 
@@ -114,7 +115,7 @@ export default function ChatPage() {
                 id: (Date.now() + 1).toString(),
                 type: 'ai',
                 content: error instanceof Error ? error.message : 'Failed to get response',
-                timestamp: new Date(),
+                timestamp,
                 suggestions: [
                     "Try asking about debt management",
                     "Ask about saving strategies",
