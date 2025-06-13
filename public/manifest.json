@@ -1,0 +1,90 @@
+{
+    "name": "Debtrix - AI-Powered Debt Elimination",
+    "short_name": "Debtrix",
+    "description": "Transform your financial future with intelligent debt elimination strategies and AI-powered coaching.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#10b981",
+    "orientation": "portrait-primary",
+    "categories": [
+        "finance",
+        "productivity",
+        "lifestyle"
+    ],
+    "lang": "en-US",
+    "scope": "/",
+    "screenshots": [
+        {
+            "src": "/images/screenshot-wide.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Debtrix Dashboard"
+        },
+        {
+            "src": "/images/screenshot-narrow.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Debtrix Mobile View"
+        }
+    ],
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "32x32",
+            "type": "image/x-icon",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "description": "View your debt elimination progress",
+            "url": "/dashboard",
+            "icons": [
+                {
+                    "src": "/favicon.ico",
+                    "sizes": "32x32",
+                    "type": "image/x-icon"
+                }
+            ]
+        },
+        {
+            "name": "Assessment",
+            "short_name": "Assessment",
+            "description": "Take financial assessment",
+            "url": "/assessment",
+            "icons": [
+                {
+                    "src": "/favicon.ico",
+                    "sizes": "32x32",
+                    "type": "image/x-icon"
+                }
+            ]
+        },
+        {
+            "name": "AI Coach",
+            "short_name": "AI Coach",
+            "description": "Chat with your AI financial coach",
+            "url": "/chat",
+            "icons": [
+                {
+                    "src": "/favicon.ico",
+                    "sizes": "32x32",
+                    "type": "image/x-icon"
+                }
+            ]
+        }
+    ],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    "launch_handler": {
+        "client_mode": "focus-existing"
+    }
+}
+}

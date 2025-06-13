@@ -1,0 +1,291 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Matrix-themed Debtrix Color System */
+  --matrix-green: #00FF41;
+  --matrix-green-dark: #00CC33;
+  --tech-black: #0D1117;
+  --trust-blue: #2563EB;
+  --trust-blue-dark: #1D4ED8;
+  --success-green: #059669;
+  --warning-orange: #EA580C;
+  --neutral-gray: #6B7280;
+  --light-gray: #F9FAFB;
+  --clean-white: #FFFFFF;
+
+  /* Light theme colors - Matrix-inspired */
+  --background: 255 255 255;
+  /* Clean white */
+  --foreground: 13 17 23;
+  /* Tech black */
+  --card: 255 255 255;
+  --card-foreground: 13 17 23;
+  --popover: 255 255 255;
+  --popover-foreground: 13 17 23;
+  --primary: 37 99 235;
+  /* Trust blue */
+  --primary-foreground: 255 255 255;
+  --secondary: 249 250 251;
+  /* Light gray */
+  --secondary-foreground: 13 17 23;
+  --muted: 249 250 251;
+  --muted-foreground: 107 114 128;
+  /* Neutral gray */
+  --accent: 0 255 65;
+  /* Matrix green */
+  --accent-foreground: 13 17 23;
+  --destructive: 234 88 12;
+  /* Warning orange */
+  --destructive-foreground: 255 255 255;
+  --border: 229 231 235;
+  --input: 249 250 251;
+  --ring: 37 99 235;
+  --chart-1: 37 99 235;
+  --chart-2: 5 150 105;
+  --chart-3: 0 255 65;
+  --chart-4: 234 88 12;
+  --chart-5: 107 114 128;
+  --sidebar: 255 255 255;
+  --sidebar-foreground: 13 17 23;
+  --sidebar-primary: 37 99 235;
+  --sidebar-primary-foreground: 255 255 255;
+  --sidebar-accent: 249 250 251;
+  --sidebar-accent-foreground: 13 17 23;
+  --sidebar-border: 229 231 235;
+  --sidebar-ring: 37 99 235;
+}
+
+.dark {
+  /* Dark theme colors - Deep Matrix aesthetic */
+  --background: 13 17 23;
+  /* Tech black */
+  --foreground: 255 255 255;
+  /* Clean white */
+  --card: 31 41 55;
+  --card-foreground: 255 255 255;
+  --popover: 31 41 55;
+  --popover-foreground: 255 255 255;
+  --primary: 0 255 65;
+  /* Matrix green */
+  --primary-foreground: 13 17 23;
+  --secondary: 55 65 81;
+  --secondary-foreground: 255 255 255;
+  --muted: 55 65 81;
+  --muted-foreground: 156 163 175;
+  --accent: 37 99 235;
+  /* Trust blue */
+  --accent-foreground: 255 255 255;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 55 65 81;
+  --input: 55 65 81;
+  --ring: 0 255 65;
+  --chart-1: 0 255 65;
+  --chart-2: 37 99 235;
+  --chart-3: 5 150 105;
+  --chart-4: 234 88 12;
+  --chart-5: 156 163 175;
+  --sidebar: 13 17 23;
+  --sidebar-foreground: 255 255 255;
+  --sidebar-primary: 0 255 65;
+  --sidebar-primary-foreground: 13 17 23;
+  --sidebar-accent: 55 65 81;
+  --sidebar-accent-foreground: 255 255 255;
+  --sidebar-border: 55 65 81;
+  --sidebar-ring: 0 255 65;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: var(--font-inter);
+  }
+
+  /* Matrix-themed animations */
+  @keyframes matrix-glow {
+
+    0%,
+    100% {
+      text-shadow: 0 0 10px rgba(0, 255, 65, 0.8), 0 0 20px rgba(0, 255, 65, 0.6), 0 0 30px rgba(0, 255, 65, 0.4);
+    }
+
+    50% {
+      text-shadow: 0 0 20px rgba(0, 255, 65, 1), 0 0 30px rgba(0, 255, 65, 0.8), 0 0 40px rgba(0, 255, 65, 0.6);
+    }
+  }
+
+  @keyframes matrix-pulse {
+
+    0%,
+    100% {
+      box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+    }
+
+    50% {
+      box-shadow: 0 0 25px rgba(0, 255, 65, 0.6), 0 0 35px rgba(0, 255, 65, 0.4);
+    }
+  }
+
+  @keyframes debt-breakthrough {
+    0% {
+      transform: scale(1) rotate(0deg);
+    }
+
+    25% {
+      transform: scale(1.1) rotate(2deg);
+    }
+
+    50% {
+      transform: scale(1.05) rotate(-1deg);
+    }
+
+    75% {
+      transform: scale(1.15) rotate(1deg);
+    }
+
+    100% {
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  .matrix-glow {
+    animation: matrix-glow 2s ease-in-out infinite;
+  }
+
+  .matrix-pulse {
+    animation: matrix-pulse 2s ease-in-out infinite;
+  }
+
+  .debt-breakthrough {
+    animation: debt-breakthrough 0.6s ease-in-out;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--accent));
+  }
+
+  /* Utility classes */
+  .text-matrix {
+    color: rgb(0 255 65);
+  }
+
+  .text-trust {
+    color: rgb(37 99 235);
+  }
+
+  .text-tech {
+    color: rgb(13 17 23);
+  }
+
+  .bg-matrix {
+    background-color: rgb(0 255 65);
+  }
+
+  .bg-trust {
+    background-color: rgb(37 99 235);
+  }
+
+  .bg-tech {
+    background-color: rgb(13 17 23);
+  }
+
+
+}
+
+/* Custom component styles */
+.debt-card {
+  @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1;
+}
+
+.debt-card.high-priority {
+  @apply border-l-4 border-l-red-500;
+}
+
+.debt-card.medium-priority {
+  @apply border-l-4 border-l-yellow-500;
+}
+
+.debt-card.low-priority {
+  @apply border-l-4 border-l-green-500;
+}
+
+.hero-text {
+  @apply bg-gradient-to-r from-blue-600 via-blue-700 to-green-500 bg-clip-text text-transparent font-bold;
+}
+
+.cta-button {
+  @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200;
+}
+
+.matrix-button {
+  @apply bg-gradient-to-r from-green-500 to-green-600 text-gray-900 font-semibold py-2 px-4 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200;
+}
+
+.glass-card {
+  @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-lg shadow-lg;
+}
