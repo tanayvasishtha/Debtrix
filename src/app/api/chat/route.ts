@@ -20,11 +20,10 @@ function isFinancialQuestion(message: string): boolean {
 
 export async function POST(req: Request) {
     try {
-        const { messages } = await req.json()
+        const { message } = await req.json()
 
         // Check if the question is financial-related
-        const lastMessage = messages[messages.length - 1]
-        if (!isFinancialQuestion(lastMessage.content)) {
+        if (!isFinancialQuestion(message)) {
             return new Response(
                 JSON.stringify({
                     error: 'Please ask a financial-related question. I can help with topics like budgeting, debt management, investing, and financial planning.'
@@ -40,13 +39,16 @@ export async function POST(req: Request) {
                 'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'sonar-pro',  // Updated to the correct model name
+                model: 'sonar-pro',
                 messages: [
                     {
                         role: 'system',
                         content: 'You are a helpful financial advisor focused on debt management, budgeting, and financial planning. Provide clear, actionable advice while being mindful of financial regulations and best practices.'
                     },
-                    ...messages
+                    {
+                        role: 'user',
+                        content: message
+                    }
                 ],
                 max_tokens: 1000
             })
@@ -75,7 +77,13 @@ export async function POST(req: Request) {
 
         return new Response(
             JSON.stringify({
-                message: data.choices[0].message.content
+                response: data.choices[0].message.content,
+                suggestions: [
+                    "How can I pay off my credit card debt faster?",
+                    "What's the difference between debt snowball and avalanche?",
+                    "Help me create a budget",
+                    "Should I consolidate my debts?"
+                ]
             }),
             { status: 200 }
         )

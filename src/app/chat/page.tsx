@@ -25,6 +25,16 @@ interface Message {
     suggestions?: string[]
 }
 
+// Add formatTimestamp function before the ChatPage component
+const formatTimestamp = (date: Date): string => {
+    return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    })
+}
+
 export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -202,7 +212,7 @@ export default function ChatPage() {
                                                 </div>
                                                 <div className={`text-xs mt-2 ${message.type === 'user' ? 'text-blue-200' : 'text-gray-400'
                                                     }`}>
-                                                    {message.timestamp.toLocaleTimeString()}
+                                                    {formatTimestamp(message.timestamp)}
                                                 </div>
                                             </CardContent>
                                         </Card>
