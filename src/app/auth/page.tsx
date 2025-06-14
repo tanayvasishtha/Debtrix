@@ -17,6 +17,7 @@ export default function AuthPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
     const [error, setError] = useState<string>('')
+    const [activeTab, setActiveTab] = useState('signin')
 
     // Sign In Form
     const [signInData, setSignInData] = useState({
@@ -31,8 +32,15 @@ export default function AuthPage() {
         confirmPassword: ''
     })
 
-    // Check if user is already authenticated
+    // Check if user is already authenticated and set tab from URL
     useEffect(() => {
+        // Set tab from URL parameter
+        const urlParams = new URLSearchParams(window.location.search)
+        const tab = urlParams.get('tab')
+        if (tab === 'signup' || tab === 'signin') {
+            setActiveTab(tab)
+        }
+
         const checkAuth = async () => {
             try {
                 // First check Supabase auth (since you're actually signed in)
@@ -225,7 +233,7 @@ export default function AuthPage() {
                                 </div>
                             )}
 
-                            <Tabs defaultValue="signin" className="w-full">
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                                 <TabsList className="grid w-full grid-cols-2 bg-gray-700">
                                     <TabsTrigger value="signin" className="data-[state=active]:bg-gray-600">
                                         Sign In
