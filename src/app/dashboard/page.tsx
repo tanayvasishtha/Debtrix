@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { debtOperations, assessmentOperations, authHelpers } from '@/lib/supabase'
 import { DebtCalculator } from '@/lib/debt-calculator'
-import { Database, DebtType, DebtMethod } from '@/types/database'
+import { Database, DebtType, DebtMethod, DebtCalculation } from '@/types/database'
 
 type Debt = Database['public']['Tables']['debts']['Row']
 type Assessment = Database['public']['Tables']['debt_assessment']['Row']
@@ -57,7 +57,7 @@ export default function DashboardPage() {
     })
     const [selectedStrategy, setSelectedStrategy] = useState<DebtMethod>('snowball')
     const [extraPayment, setExtraPayment] = useState(0)
-    const [calculation, setCalculation] = useState<{ totalDebt: number; totalInterest: number; payoffTime: number; monthlyPayment: number; strategy: DebtMethod; paymentPlan: Array<{ month: number; payment: number; balance: number; interest: number }> } | null>(null)
+    const [calculation, setCalculation] = useState<DebtCalculation | null>(null)
     const [errors, setErrors] = useState<string[]>([])
 
     // Add Debt Form
@@ -90,8 +90,32 @@ export default function DashboardPage() {
                 return
             }
 
-            const calculator = new DebtCalculator()
-            const result = calculator.calculatePayoffPlan(validDebts, selectedStrategy, extraPayment)
+            // Convert debts to DebtInput format
+            const debtInputs = validDebts.map(debt => ({
+                id: debt.id,
+                name: debt.debt_name,
+                balance: debt.current_balance,
+                interestRate: debt.interest_rate,
+                minimumPayment: debt.minimum_payment
+            }))
+
+            const calculator = new DebtCalculator(debtInputs, extraPayment)
+
+            let result
+            switch (selectedStrategy) {
+                case 'snowball':
+                    result = calculator.calculateSnowball()
+                    break
+                case 'avalanche':
+                    result = calculator.calculateAvalanche()
+                    break
+                case 'hybrid':
+                    result = calculator.calculateHybrid()
+                    break
+                default:
+                    result = calculator.calculateSnowball()
+            }
+
             setCalculation(result)
         } catch (error: unknown) {
             console.error('Error calculating debt strategy:', error)
@@ -217,13 +241,14 @@ export default function DashboardPage() {
             // Load all data concurrently with proper error handling
             const results = await Promise.allSettled([
                 debtOperations.getUserDebts(userId),
-                assessmentOperations.getAssessment(userId)
+                assessmentOperations.getUserAssessment(userId)
             ])
 
             // Handle debts result
             if (results[0].status === 'fulfilled') {
-                setDebts(results[0].value || [])
-                console.log('Debts loaded:', results[0].value?.length || 0)
+                const userDebts = results[0].value as Debt[] | null
+                setDebts(userDebts || [])
+                console.log('Debts loaded:', userDebts?.length || 0)
             } else {
                 console.error('Failed to load debts:', results[0].reason)
                 setDebts([])
@@ -231,13 +256,14 @@ export default function DashboardPage() {
 
             // Handle assessment result
             if (results[1].status === 'fulfilled') {
-                setAssessment(results[1].value)
-                console.log('Assessment loaded:', !!results[1].value)
-                if (results[1].value?.recommended_method) {
-                    setSelectedStrategy(results[1].value.recommended_method)
+                const userAssessment = results[1].value as Assessment | null
+                setAssessment(userAssessment)
+                console.log('Assessment loaded:', !!userAssessment)
+                if (userAssessment?.recommended_method) {
+                    setSelectedStrategy(userAssessment.recommended_method)
                 }
-                if (results[1].value?.extra_payment_capacity) {
-                    setExtraPayment(results[1].value.extra_payment_capacity)
+                if (userAssessment?.extra_payment_capacity) {
+                    setExtraPayment(userAssessment.extra_payment_capacity)
                 }
             } else {
                 console.error('Failed to load assessment:', results[1].reason)

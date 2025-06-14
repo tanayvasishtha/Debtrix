@@ -249,7 +249,7 @@ export default function AssessmentPage() {
                     const debtToSave = {
                         user_id: currentUser.id,
                         debt_name: debt.name,
-                        debt_type: debt.type.toLowerCase().replace(' ', '_') as 'credit_card' | 'personal_loan' | 'student_loan' | 'auto_loan' | 'mortgage' | 'other',
+                        debt_type: mapDebtType(debt.type),
                         current_balance: parseFloat(debt.balance),
                         original_balance: parseFloat(debt.balance),
                         interest_rate: parseFloat(debt.interestRate) || 0,
@@ -327,6 +327,19 @@ export default function AssessmentPage() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    // Helper function to map debt types
+    const mapDebtType = (type: string): 'credit_card' | 'student_loan' | 'personal' | 'mortgage' | 'auto_loan' => {
+        const typeMap: Record<string, 'credit_card' | 'student_loan' | 'personal' | 'mortgage' | 'auto_loan'> = {
+            'Credit Card': 'credit_card',
+            'Student Loan': 'student_loan',
+            'Personal Loan': 'personal',
+            'Auto Loan': 'auto_loan',
+            'Mortgage': 'mortgage',
+            'Other': 'personal'
+        }
+        return typeMap[type] || 'personal'
     }
 
     const renderStep1 = () => (

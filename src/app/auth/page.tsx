@@ -68,8 +68,8 @@ export default function AuthPage() {
         console.log('Password length:', signInData.password.length)
 
         try {
-            const { error } = await authHelpers.signIn(signInData.email, signInData.password)
-            if (error) throw error
+            const data = await authHelpers.signIn(signInData.email, signInData.password)
+            console.log('Sign in successful:', data)
 
             setMessage({ type: 'success', text: 'Successfully signed in! Redirecting...' })
             setTimeout(() => router.push('/dashboard'), 1500)
@@ -103,8 +103,8 @@ export default function AuthPage() {
         }
 
         try {
-            const { error } = await authHelpers.signUp(signUpData.email, signUpData.password)
-            if (error) throw error
+            const data = await authHelpers.signUp(signUpData.email, signUpData.password)
+            console.log('Sign up successful:', data)
 
             setMessage({
                 type: 'success',
