@@ -66,12 +66,12 @@ export default function LandingPage() {
 
             {/* Desktop CTA Buttons */}
             <div className="hidden md:flex items-center space-x-3">
-              <Link href="/auth?tab=signin">
+              <Link href="/auth">
                 <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-800 font-medium text-sm px-4 py-2">
                   Sign In
                 </Button>
               </Link>
-              <Link href="/auth?tab=signup">
+              <Link href="/auth">
                 <Button className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white font-medium text-sm px-4 py-2 rounded-lg">
                   Get Started
                 </Button>
@@ -126,12 +126,12 @@ export default function LandingPage() {
                   </Link>
                   <div className="border-t border-gray-800 pt-4 mt-4">
                     <div className="flex flex-col space-y-3">
-                      <Link href="/auth?tab=signin" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full text-gray-300 hover:text-white hover:bg-gray-800 font-medium text-sm py-2">
                           Sign In
                         </Button>
                       </Link>
-                      <Link href="/auth?tab=signup" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
                         <Button className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white font-medium text-sm py-2 rounded-lg">
                           Get Started
                         </Button>
@@ -177,7 +177,7 @@ export default function LandingPage() {
 
             {/* Modern CTA */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/auth?tab=signup">
+              <Link href="/auth">
                 <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white font-semibold px-8 py-3 text-base rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
                   Get Started Free
                   <ArrowRight className="w-4 h-4 ml-2" />
