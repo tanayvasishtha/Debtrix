@@ -16,7 +16,6 @@ import {
     User,
     ArrowRight,
     Search,
-    Filter,
     Menu,
     X
 } from 'lucide-react'

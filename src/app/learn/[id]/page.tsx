@@ -1,11 +1,11 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Clock, User, BookOpen, Target, Calculator, TrendingUp, DollarSign, Brain } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { ArrowLeft, Clock, User, BookOpen, Target, Calculator, TrendingUp, DollarSign, Brain, Calendar, Tag } from 'lucide-react'
 import { useState } from 'react'
 
 interface BlogPost {

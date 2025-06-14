@@ -13,7 +13,6 @@ import {
     DollarSign,
     Calculator,
     BookOpen,
-    MessageSquare,
     ArrowLeft
 } from 'lucide-react'
 

@@ -16,22 +16,16 @@ import {
     DollarSign,
     Calendar,
     Trophy,
-    Zap,
     Plus,
     MessageSquare,
     BookOpen,
-    ArrowUp,
-    ArrowDown,
-    CheckCircle,
-    Flame,
-    Users,
     Menu,
     X,
     Edit,
     Trash2,
     Calculator
 } from 'lucide-react'
-import { supabase, debtOperations, progressOperations, assessmentOperations, authHelpers } from '@/lib/supabase'
+import { debtOperations, assessmentOperations, authHelpers } from '@/lib/supabase'
 import { DebtCalculator } from '@/lib/debt-calculator'
 import { Database, DebtType, DebtMethod } from '@/types/database'
 
@@ -50,7 +44,7 @@ interface DebtFormData {
 
 export default function DashboardPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] = useState<{ id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string } | null>(null)
     const [debts, setDebts] = useState<Debt[]>([])
     const [assessment, setAssessment] = useState<Assessment | null>(null)
     const [recentProgress, setRecentProgress] = useState<ProgressEntry[]>([])
@@ -63,7 +57,7 @@ export default function DashboardPage() {
     })
     const [selectedStrategy, setSelectedStrategy] = useState<DebtMethod>('snowball')
     const [extraPayment, setExtraPayment] = useState(0)
-    const [calculation, setCalculation] = useState<any>(null)
+    const [calculation, setCalculation] = useState<{ totalDebt: number; totalInterest: number; payoffTime: number; monthlyPayment: number; strategy: DebtMethod; paymentPlan: Array<{ month: number; payment: number; balance: number; interest: number }> } | null>(null)
     const [errors, setErrors] = useState<string[]>([])
 
     // Add Debt Form
@@ -99,7 +93,7 @@ export default function DashboardPage() {
         } else {
             setCalculation(null)
         }
-    }, [debts.length, selectedStrategy, extraPayment]) // Use debts.length instead of debts array
+    }, [debts.length, selectedStrategy, extraPayment, calculateDebtStrategy])
 
     const addError = (message: string) => {
         setErrors(prev => [...prev, message])
@@ -134,8 +128,8 @@ export default function DashboardPage() {
                 } else {
                     console.log('No Supabase user found, checking alternatives...')
                 }
-            } catch (supabaseError: any) {
-                console.log('Supabase auth check failed:', supabaseError?.message || supabaseError)
+            } catch (supabaseError: unknown) {
+                console.log('Supabase auth check failed:', supabaseError instanceof Error ? supabaseError.message : supabaseError)
                 // Don't throw here, just log and continue to fallbacks
             }
 
@@ -179,7 +173,7 @@ export default function DashboardPage() {
                         user_metadata: {},
                         aud: '',
                         created_at: new Date().toISOString()
-                    } as any
+                    }
                     console.log('Using demo user with UUID:', currentUser.id)
                 } else {
                     // Redirect to auth page for real users
@@ -196,43 +190,40 @@ export default function DashboardPage() {
             const userId = currentUser.id
             console.log('Loading data for user:', userId)
 
-            // Load all data in parallel with better error handling
-            const [debtsResult, assessmentResult, progressResult] = await Promise.allSettled([
+            // Load all data concurrently with proper error handling
+            const results = await Promise.allSettled([
                 debtOperations.getUserDebts(userId),
-                assessmentOperations.getUserAssessment(userId),
-                progressOperations.getUserProgress(userId)
+                assessmentOperations.getAssessment(userId)
             ])
 
             // Handle debts result
-            if (debtsResult.status === 'fulfilled') {
-                setDebts(debtsResult.value)
+            if (results[0].status === 'fulfilled') {
+                setDebts(results[0].value || [])
+                console.log('Debts loaded:', results[0].value?.length || 0)
             } else {
-                console.error('Error loading debts:', debtsResult.reason)
-                setErrors(prev => [...prev, 'Failed to load debts. Using demo data.'])
+                console.error('Failed to load debts:', results[0].reason)
                 setDebts([])
             }
 
             // Handle assessment result
-            if (assessmentResult.status === 'fulfilled') {
-                setAssessment(assessmentResult.value)
+            if (results[1].status === 'fulfilled') {
+                setAssessment(results[1].value)
+                console.log('Assessment loaded:', !!results[1].value)
+                if (results[1].value?.recommended_method) {
+                    setSelectedStrategy(results[1].value.recommended_method)
+                }
+                if (results[1].value?.extra_payment_capacity) {
+                    setExtraPayment(results[1].value.extra_payment_capacity)
+                }
             } else {
-                console.error('Error loading assessment:', assessmentResult.reason)
-                setErrors(prev => [...prev, 'Failed to load assessment data.'])
+                console.error('Failed to load assessment:', results[1].reason)
                 setAssessment(null)
             }
 
-            // Handle progress result
-            if (progressResult.status === 'fulfilled') {
-                setRecentProgress(progressResult.value)
-            } else {
-                console.error('Error loading progress:', progressResult.reason)
-                setErrors(prev => [...prev, 'Failed to load progress data.'])
-                setRecentProgress([])
-            }
-
-        } catch (error) {
-            console.error('Error in loadUserData:', error)
-            setErrors(prev => [...prev, 'Failed to load user data. Please try again.'])
+        } catch (error: unknown) {
+            console.error('Error loading user data:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+            console.error('Dashboard load error:', errorMessage)
         } finally {
             setLoading(false)
         }
@@ -354,8 +345,6 @@ export default function DashboardPage() {
             console.error('Error deleting debt:', error)
         }
     }
-
-
 
     const getStrategyOrder = (strategy: DebtMethod) => {
         switch (strategy) {
