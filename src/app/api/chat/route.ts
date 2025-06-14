@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server'
-
 // Function to check if a message is financial-related
 function isFinancialQuestion(message: string): boolean {
     const financialKeywords = [

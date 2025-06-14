@@ -176,7 +176,7 @@ export default function AssessmentPage() {
                     user_metadata: {},
                     aud: '',
                     created_at: new Date().toISOString()
-                } as any
+                } as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string }
                 if (currentUser) {
                     console.log('Created demo user with UUID:', currentUser.id)
                 }
@@ -214,7 +214,7 @@ export default function AssessmentPage() {
                 extra_payment_capacity: extraPaymentCapacity,
                 monthly_income: monthlyIncome,
                 monthly_expenses: monthlyExpenses,
-                recommended_method: recommendedMethod as any,
+                recommended_method: recommendedMethod as 'snowball' | 'avalanche' | 'hybrid',
                 assessment_completed: true
             }
 
@@ -249,7 +249,7 @@ export default function AssessmentPage() {
                     const debtToSave = {
                         user_id: currentUser.id,
                         debt_name: debt.name,
-                        debt_type: debt.type.toLowerCase().replace(' ', '_') as any,
+                        debt_type: debt.type.toLowerCase().replace(' ', '_') as 'credit_card' | 'personal_loan' | 'student_loan' | 'auto_loan' | 'mortgage' | 'other',
                         current_balance: parseFloat(debt.balance),
                         original_balance: parseFloat(debt.balance),
                         interest_rate: parseFloat(debt.interestRate) || 0,
@@ -274,36 +274,48 @@ export default function AssessmentPage() {
                 window.location.href = '/dashboard?assessment=completed'
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('=== ASSESSMENT SAVE ERROR ===')
             console.error('Raw error:', error)
             console.error('Error type:', typeof error)
-            console.error('Error constructor:', error?.constructor?.name)
-            console.error('Error toString:', String(error))
-            console.error('Error JSON:', JSON.stringify(error, null, 2))
-            console.error('Error details:', {
-                message: error?.message,
-                code: error?.code,
-                details: error?.details,
-                hint: error?.hint,
-                stack: error?.stack
-            })
+
+            if (error && typeof error === 'object') {
+                console.error('Error constructor:', (error as any)?.constructor?.name)
+                console.error('Error toString:', String(error))
+                console.error('Error JSON:', JSON.stringify(error, null, 2))
+                console.error('Error details:', {
+                    message: (error as any)?.message,
+                    code: (error as any)?.code,
+                    details: (error as any)?.details,
+                    hint: (error as any)?.hint,
+                    stack: (error as any)?.stack
+                })
+            }
 
             let errorMessage = 'Failed to save assessment. '
 
             // Check specific error types
-            if (error?.code === '23514' || error?.message?.includes('check constraint')) {
-                errorMessage = 'Invalid data format. Please check your form inputs and try again. If the problem persists, please contact support.'
-            } else if (error?.code === '42501' || error?.message?.includes('row-level security policy')) {
-                errorMessage = 'Database security policy violation. Please contact support if this persists.'
-            } else if (error?.message?.includes('current_balance') ||
-                error?.message?.includes('schema cache') ||
-                error?.message?.includes('relation') ||
-                error?.message?.includes('does not exist') ||
-                error?.code === 'PGRST204' ||
-                error?.code === 'PGRST106') {
-                errorMessage = 'Database connection issue. Please try again or contact support if this persists.'
-            } else if (error?.message) {
+            if (error && typeof error === 'object' && 'code' in error) {
+                const errorCode = (error as any).code
+                const errorMessage_ = (error as any).message || ''
+
+                if (errorCode === '23514' || errorMessage_.includes('check constraint')) {
+                    errorMessage = 'Invalid data format. Please check your form inputs and try again. If the problem persists, please contact support.'
+                } else if (errorCode === '42501' || errorMessage_.includes('row-level security policy')) {
+                    errorMessage = 'Database security policy violation. Please contact support if this persists.'
+                } else if (errorMessage_.includes('current_balance') ||
+                    errorMessage_.includes('schema cache') ||
+                    errorMessage_.includes('relation') ||
+                    errorMessage_.includes('does not exist') ||
+                    errorCode === 'PGRST204' ||
+                    errorCode === 'PGRST106') {
+                    errorMessage = 'Database connection issue. Please try again or contact support if this persists.'
+                } else if (errorMessage_) {
+                    errorMessage = `Error: ${errorMessage_}`
+                } else {
+                    errorMessage = 'Unknown error occurred. Please check the console for details and try again.'
+                }
+            } else if (error instanceof Error) {
                 errorMessage = `Error: ${error.message}`
             } else {
                 errorMessage = 'Unknown error occurred. Please check the console for details and try again.'
@@ -569,7 +581,7 @@ export default function AssessmentPage() {
                         <option value="1-2 years">1-2 years</option>
                         <option value="3-5 years">3-5 years</option>
                         <option value="5+ years">5+ years</option>
-                        <option value="flexible">I'm flexible</option>
+                        <option value="flexible">I&apos;m flexible</option>
                     </select>
                 </div>
 

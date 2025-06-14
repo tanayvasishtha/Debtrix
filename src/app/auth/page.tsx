@@ -77,19 +77,23 @@ export default function AuthPage() {
             } else {
                 throw new Error('Authentication failed - no user returned')
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Sign in error:', error)
 
             let errorMessage = 'Failed to sign in. '
 
-            if (error.message?.includes('Invalid login credentials')) {
-                errorMessage = 'Invalid email or password. Please check your credentials.'
-            } else if (error.message?.includes('Email not confirmed')) {
-                errorMessage = 'Please check your email and click the confirmation link.'
-            } else if (error.message?.includes('Failed to fetch') || error.message?.includes('AuthRetryableFetchError')) {
-                errorMessage = 'Network connection error. Please try again or use demo mode.'
+            if (error instanceof Error) {
+                if (error.message?.includes('Invalid login credentials')) {
+                    errorMessage = 'Invalid email or password. Please check your credentials.'
+                } else if (error.message?.includes('Email not confirmed')) {
+                    errorMessage = 'Please check your email and click the confirmation link.'
+                } else if (error.message?.includes('Failed to fetch') || error.message?.includes('AuthRetryableFetchError')) {
+                    errorMessage = 'Network connection error. Please try again or use demo mode.'
+                } else {
+                    errorMessage = error.message || 'An unexpected error occurred.'
+                }
             } else {
-                errorMessage = error.message || 'An unexpected error occurred.'
+                errorMessage = 'An unexpected error occurred.'
             }
 
             setMessage({ type: 'error', text: errorMessage })
@@ -126,11 +130,12 @@ export default function AuthPage() {
                 })
                 setSignUpData({ email: '', password: '', confirmPassword: '' })
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Sign up error:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.'
             setMessage({
                 type: 'error',
-                text: error.message || 'Failed to create account. Please try again.'
+                text: errorMessage
             })
         } finally {
             setLoading(false)
