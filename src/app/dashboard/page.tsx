@@ -358,16 +358,18 @@ export default function DashboardPage() {
     }
 
     const getProgressColor = (debt: Debt) => {
-        const progress = ((debt.original_balance - debt.current_balance) / debt.original_balance) * 100
+        const originalBalance = debt.original_balance || debt.current_balance || 0
+        const currentBalance = debt.current_balance || 0
+        const progress = originalBalance > 0 ? ((originalBalance - currentBalance) / originalBalance) * 100 : 0
         if (progress >= 75) return 'bg-green-500'
         if (progress >= 50) return 'bg-yellow-500'
         if (progress >= 25) return 'bg-orange-500'
         return 'bg-red-500'
     }
 
-    const totalDebt = debts.reduce((sum, debt) => sum + debt.current_balance, 0)
-    const totalMinPayments = debts.reduce((sum, debt) => sum + debt.minimum_payment, 0)
-    const totalOriginalDebt = debts.reduce((sum, debt) => sum + debt.original_balance, 0)
+    const totalDebt = debts.reduce((sum, debt) => sum + (debt.current_balance || 0), 0)
+    const totalMinPayments = debts.reduce((sum, debt) => sum + (debt.minimum_payment || 0), 0)
+    const totalOriginalDebt = debts.reduce((sum, debt) => sum + (debt.original_balance || debt.current_balance || 0), 0)
     const overallProgress = totalOriginalDebt > 0 ? ((totalOriginalDebt - totalDebt) / totalOriginalDebt) * 100 : 0
 
     const strategyDebts = getStrategyOrder(selectedStrategy)
@@ -734,7 +736,9 @@ export default function DashboardPage() {
                                         <CardContent>
                                             <div className="space-y-4">
                                                 {strategyDebts.map((debt, index) => {
-                                                    const progress = ((debt.original_balance - debt.current_balance) / debt.original_balance) * 100
+                                                    const originalBalance = debt.original_balance || debt.current_balance || 0
+                                                    const currentBalance = debt.current_balance || 0
+                                                    const progress = originalBalance > 0 ? ((originalBalance - currentBalance) / originalBalance) * 100 : 0
                                                     return (
                                                         <div key={debt.id} className="bg-gray-700/50 rounded-lg p-4">
                                                             <div className="flex items-center justify-between mb-2">
@@ -751,7 +755,7 @@ export default function DashboardPage() {
                                                                     </div>
                                                                 </div>
                                                                 <div className="text-right">
-                                                                    <p className="text-white font-semibold">${debt.current_balance.toLocaleString()}</p>
+                                                                    <p className="text-white font-semibold">${(debt.current_balance || 0).toLocaleString()}</p>
                                                                     <div className="flex items-center gap-2">
                                                                         <Button
                                                                             variant="ghost"
@@ -772,13 +776,13 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-                                                                <span>Min Payment: ${debt.minimum_payment}</span>
-                                                                <span>Interest: {debt.interest_rate}%</span>
+                                                                <span>Min Payment: ${(debt.minimum_payment || 0).toLocaleString()}</span>
+                                                                <span>Interest: {(debt.interest_rate || 0)}%</span>
                                                             </div>
                                                             <Progress value={progress} className="h-2" />
                                                             <div className="flex justify-between text-xs text-gray-400 mt-1">
                                                                 <span>Progress: {Math.round(progress)}%</span>
-                                                                <span>Original: ${debt.original_balance.toLocaleString()}</span>
+                                                                <span>Original: ${(debt.original_balance || debt.current_balance || 0).toLocaleString()}</span>
                                                             </div>
                                                         </div>
                                                     )
@@ -834,10 +838,10 @@ export default function DashboardPage() {
                                                             </div>
                                                             <div className="text-right">
                                                                 <p className="font-semibold text-green-400">
-                                                                    ${progress.payment_amount.toLocaleString()}
+                                                                    ${(progress.payment_amount || 0).toLocaleString()}
                                                                 </p>
                                                                 <p className="text-gray-400 text-sm">
-                                                                    Balance: ${progress.remaining_balance.toLocaleString()}
+                                                                    Balance: ${(progress.remaining_balance || 0).toLocaleString()}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -867,11 +871,11 @@ export default function DashboardPage() {
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-400">Total Interest:</span>
-                                                        <span className="text-white font-medium">${Math.round(calculation.totalInterest).toLocaleString()}</span>
+                                                        <span className="text-white font-medium">${Math.round(calculation.totalInterest || 0).toLocaleString()}</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-400">Monthly Payment:</span>
-                                                        <span className="text-white font-medium">${calculation.monthlyPayment.toLocaleString()}</span>
+                                                        <span className="text-white font-medium">${(calculation.monthlyPayment || 0).toLocaleString()}</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-400">Method:</span>

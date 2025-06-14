@@ -64,8 +64,10 @@ const demoDebts: Database['public']['Tables']['debts']['Row'][] = [
     {
         id: 'demo-1',
         user_id: 'demo-user',
-        name: 'Credit Card',
-        balance: 5000,
+        debt_name: 'Credit Card',
+        debt_type: 'credit_card',
+        current_balance: 5000,
+        original_balance: 6000,
         minimum_payment: 150,
         interest_rate: 18.99,
         due_date: '2024-01-15',
@@ -75,8 +77,10 @@ const demoDebts: Database['public']['Tables']['debts']['Row'][] = [
     {
         id: 'demo-2',
         user_id: 'demo-user',
-        name: 'Student Loan',
-        balance: 25000,
+        debt_name: 'Student Loan',
+        debt_type: 'student_loan',
+        current_balance: 25000,
+        original_balance: 30000,
         minimum_payment: 300,
         interest_rate: 6.5,
         due_date: '2024-01-20',
@@ -148,8 +152,12 @@ export const debtOperations = {
 
         // Check if user ID is demo/local format
         if (userId?.startsWith('demo-') || userId?.startsWith('local-') || !supabase) {
-            console.log('Demo mode: returning demo debts')
-            return demoDebts.filter(debt => debt.user_id === userId)
+            console.log('Demo mode: returning demo debts for user:', userId)
+            // Return demo debts with the current user's ID
+            return demoDebts.map(debt => ({
+                ...debt,
+                user_id: userId
+            }))
         }
 
         try {
@@ -291,8 +299,14 @@ export const assessmentOperations = {
     async getUserAssessment(userId: string) {
         // Check if user ID is demo/local format
         if (userId?.startsWith('demo-') || userId?.startsWith('local-') || !supabase) {
-            // Demo mode: return demo assessment
-            return demoAssessment && demoAssessment.user_id === userId ? demoAssessment : null
+            // Demo mode: return demo assessment with correct user ID
+            if (demoAssessment) {
+                return {
+                    ...demoAssessment,
+                    user_id: userId
+                }
+            }
+            return null
         }
 
         try {
@@ -412,8 +426,11 @@ export const progressOperations = {
     async getUserProgress(userId: string) {
         // Check if user ID is demo/local format
         if (userId?.startsWith('demo-') || userId?.startsWith('local-') || !supabase) {
-            // Demo mode: return demo progress for this user
-            return demoProgress.filter(progress => progress.user_id === userId)
+            // Demo mode: return demo progress with correct user ID
+            return demoProgress.map(progress => ({
+                ...progress,
+                user_id: userId
+            }))
         }
 
         try {
@@ -601,7 +618,18 @@ export const authHelpers = {
     // Get current user
     async getCurrentUser() {
         if (!supabase) {
-            // Demo mode: return null (will trigger demo user creation)
+            // Demo mode: check localStorage for demo user
+            if (typeof window !== 'undefined') {
+                const storedUser = localStorage.getItem('debtrix_user')
+                if (storedUser) {
+                    try {
+                        return JSON.parse(storedUser)
+                    } catch (error) {
+                        console.error('Error parsing stored user:', error)
+                        localStorage.removeItem('debtrix_user')
+                    }
+                }
+            }
             return null
         }
 
@@ -652,7 +680,28 @@ export const authHelpers = {
     // Sign up
     async signUp(email: string, password: string) {
         if (!supabase) {
-            throw new Error('Demo mode: Authentication not available')
+            // Demo mode: create a mock user
+            console.log('Demo mode: Creating mock user for signup')
+            const mockUser = {
+                id: `demo-${Date.now()}`,
+                email,
+                created_at: new Date().toISOString(),
+                app_metadata: {},
+                user_metadata: {},
+                aud: 'authenticated',
+                role: 'authenticated'
+            }
+
+            return {
+                user: mockUser,
+                session: {
+                    access_token: 'demo-token',
+                    refresh_token: 'demo-refresh',
+                    expires_in: 3600,
+                    token_type: 'bearer',
+                    user: mockUser
+                }
+            }
         }
 
         const { data, error } = await supabase.auth.signUp({
@@ -669,7 +718,33 @@ export const authHelpers = {
         console.log('Supabase client exists:', !!supabase)
 
         if (!supabase) {
-            throw new Error('Demo mode: Authentication not available')
+            // Demo mode: create a mock user for any email/password
+            console.log('Demo mode: Creating mock user for signin')
+            const mockUser = {
+                id: `demo-${email.replace('@', '-').replace('.', '-')}`,
+                email,
+                created_at: new Date().toISOString(),
+                app_metadata: {},
+                user_metadata: {},
+                aud: 'authenticated',
+                role: 'authenticated'
+            }
+
+            // Store in localStorage for persistence
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('debtrix_user', JSON.stringify(mockUser))
+            }
+
+            return {
+                user: mockUser,
+                session: {
+                    access_token: 'demo-token',
+                    refresh_token: 'demo-refresh',
+                    expires_in: 3600,
+                    token_type: 'bearer',
+                    user: mockUser
+                }
+            }
         }
 
         console.log('Supabase URL:', supabaseUrl)
@@ -689,7 +764,11 @@ export const authHelpers = {
     // Sign out
     async signOut() {
         if (!supabase) {
-            return // Demo mode: nothing to do
+            // Demo mode: clear localStorage
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('debtrix_user')
+            }
+            return
         }
 
         const { error } = await supabase.auth.signOut()
