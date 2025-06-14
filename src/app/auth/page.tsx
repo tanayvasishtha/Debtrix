@@ -16,6 +16,7 @@ export default function AuthPage() {
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+    const [error, setError] = useState<string>('')
 
     // Sign In Form
     const [signInData, setSignInData] = useState({
@@ -60,43 +61,25 @@ export default function AuthPage() {
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        setMessage(null)
+        setError('')
 
         console.log('=== SIGN IN ATTEMPT ===')
         console.log('Email:', signInData.email)
         console.log('Password length:', signInData.password.length)
 
         try {
-            // Try Supabase authentication first
-            const result = await authHelpers.signIn(signInData.email, signInData.password)
-            console.log('Supabase sign in result:', result)
+            const { error } = await authHelpers.signIn(signInData.email, signInData.password)
+            if (error) throw error
 
-            if (result?.user) {
-                setMessage({ type: 'success', text: 'Successfully signed in! Redirecting...' })
-                setTimeout(() => router.push('/dashboard'), 1500)
-            } else {
-                throw new Error('Authentication failed - no user returned')
-            }
+            setMessage({ type: 'success', text: 'Successfully signed in! Redirecting...' })
+            setTimeout(() => router.push('/dashboard'), 1500)
         } catch (error: unknown) {
             console.error('Sign in error:', error)
-
-            let errorMessage = 'Failed to sign in. '
-
             if (error instanceof Error) {
-                if (error.message?.includes('Invalid login credentials')) {
-                    errorMessage = 'Invalid email or password. Please check your credentials.'
-                } else if (error.message?.includes('Email not confirmed')) {
-                    errorMessage = 'Please check your email and click the confirmation link.'
-                } else if (error.message?.includes('Failed to fetch') || error.message?.includes('AuthRetryableFetchError')) {
-                    errorMessage = 'Network connection error. Please try again or use demo mode.'
-                } else {
-                    errorMessage = error.message || 'An unexpected error occurred.'
-                }
+                setError(error.message)
             } else {
-                errorMessage = 'An unexpected error occurred.'
+                setError('An unexpected error occurred')
             }
-
-            setMessage({ type: 'error', text: errorMessage })
         } finally {
             setLoading(false)
         }
@@ -105,38 +88,36 @@ export default function AuthPage() {
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        setMessage(null)
+        setError('')
 
         if (signUpData.password !== signUpData.confirmPassword) {
-            setMessage({ type: 'error', text: 'Passwords do not match' })
+            setError('Passwords do not match')
             setLoading(false)
             return
         }
 
         if (signUpData.password.length < 6) {
-            setMessage({ type: 'error', text: 'Password must be at least 6 characters' })
+            setError('Password must be at least 6 characters')
             setLoading(false)
             return
         }
 
         try {
-            const result = await authHelpers.signUp(signUpData.email, signUpData.password)
-            console.log('Sign up result:', result)
+            const { error } = await authHelpers.signUp(signUpData.email, signUpData.password)
+            if (error) throw error
 
-            if (result.user) {
-                setMessage({
-                    type: 'success',
-                    text: 'Account created successfully! Check your email for verification, then you can sign in.'
-                })
-                setSignUpData({ email: '', password: '', confirmPassword: '' })
-            }
+            setMessage({
+                type: 'success',
+                text: 'Account created successfully! Check your email for verification, then you can sign in.'
+            })
+            setSignUpData({ email: '', password: '', confirmPassword: '' })
         } catch (error: unknown) {
             console.error('Sign up error:', error)
-            const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.'
-            setMessage({
-                type: 'error',
-                text: errorMessage
-            })
+            if (error instanceof Error) {
+                setError(error.message)
+            } else {
+                setError('An unexpected error occurred')
+            }
         } finally {
             setLoading(false)
         }
@@ -231,6 +212,15 @@ export default function AuthPage() {
                                             <AlertCircle className="w-4 h-4" />
                                         )}
                                         <p className="text-sm">{message.text}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="mb-4 p-3 rounded-lg border bg-red-900/30 border-red-500/30 text-red-300">
+                                    <div className="flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4" />
+                                        <p className="text-sm">{error}</p>
                                     </div>
                                 </div>
                             )}

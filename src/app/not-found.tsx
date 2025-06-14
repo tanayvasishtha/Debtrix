@@ -19,9 +19,9 @@ export default function NotFound() {
         <h1 className="text-4xl font-bold text-white mb-4">
           Path Not <span className="text-[#00FF41]">Found</span>
         </h1>
-        
-        <p className="text-gray-300 mb-8 leading-relaxed">
-          This page doesn't exist in the Matrix. You may have followed a broken link or entered an incorrect URL.
+
+        <p className="text-xl text-gray-600 mb-8">
+          Oops! The page you&apos;re looking for doesn&apos;t exist.
         </p>
 
         {/* Navigation Options */}
@@ -33,7 +33,7 @@ export default function NotFound() {
             <Home className="w-5 h-5" />
             Return Home
           </Link>
-          
+
           <Link
             href="/dashboard"
             className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
@@ -41,7 +41,7 @@ export default function NotFound() {
             <ArrowLeft className="w-5 h-5" />
             Go to Dashboard
           </Link>
-          
+
           <Link
             href="/learn"
             className="w-full bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"

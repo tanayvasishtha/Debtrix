@@ -280,15 +280,16 @@ export default function AssessmentPage() {
             console.error('Error type:', typeof error)
 
             if (error && typeof error === 'object') {
-                console.error('Error constructor:', (error as any)?.constructor?.name)
+                const errorObj = error as Record<string, unknown>;
+                console.error('Error constructor:', errorObj?.constructor?.name)
                 console.error('Error toString:', String(error))
                 console.error('Error JSON:', JSON.stringify(error, null, 2))
                 console.error('Error details:', {
-                    message: (error as any)?.message,
-                    code: (error as any)?.code,
-                    details: (error as any)?.details,
-                    hint: (error as any)?.hint,
-                    stack: (error as any)?.stack
+                    message: errorObj?.message,
+                    code: errorObj?.code,
+                    details: errorObj?.details,
+                    hint: errorObj?.hint,
+                    stack: errorObj?.stack
                 })
             }
 
@@ -296,22 +297,23 @@ export default function AssessmentPage() {
 
             // Check specific error types
             if (error && typeof error === 'object' && 'code' in error) {
-                const errorCode = (error as any).code
-                const errorMessage_ = (error as any).message || ''
+                const errorObj = error as Record<string, unknown>;
+                const errorCode = errorObj.code
+                const errorMessage_ = errorObj.message || ''
 
-                if (errorCode === '23514' || errorMessage_.includes('check constraint')) {
+                if (errorCode === '23514' || String(errorMessage_).includes('check constraint')) {
                     errorMessage = 'Invalid data format. Please check your form inputs and try again. If the problem persists, please contact support.'
-                } else if (errorCode === '42501' || errorMessage_.includes('row-level security policy')) {
+                } else if (errorCode === '42501' || String(errorMessage_).includes('row-level security policy')) {
                     errorMessage = 'Database security policy violation. Please contact support if this persists.'
-                } else if (errorMessage_.includes('current_balance') ||
-                    errorMessage_.includes('schema cache') ||
-                    errorMessage_.includes('relation') ||
-                    errorMessage_.includes('does not exist') ||
+                } else if (String(errorMessage_).includes('current_balance') ||
+                    String(errorMessage_).includes('schema cache') ||
+                    String(errorMessage_).includes('relation') ||
+                    String(errorMessage_).includes('does not exist') ||
                     errorCode === 'PGRST204' ||
                     errorCode === 'PGRST106') {
                     errorMessage = 'Database connection issue. Please try again or contact support if this persists.'
                 } else if (errorMessage_) {
-                    errorMessage = `Error: ${errorMessage_}`
+                    errorMessage = `Error: ${String(errorMessage_)}`
                 } else {
                     errorMessage = 'Unknown error occurred. Please check the console for details and try again.'
                 }
@@ -335,7 +337,7 @@ export default function AssessmentPage() {
                     Financial Overview
                 </CardTitle>
                 <CardDescription className="text-gray-400">
-                    Let's understand your current financial situation
+                    Let&apos;s understand your current financial situation
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -722,6 +724,9 @@ export default function AssessmentPage() {
                         </h1>
                         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
                             Complete this 4-step assessment to get personalized debt elimination strategies
+                        </p>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Don&apos;t worry - this information is kept private and secure. We use it to create a personalized debt payoff plan just for you.
                         </p>
                     </div>
 

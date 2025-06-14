@@ -18,12 +18,16 @@ import {
   Shield,
   BookOpen,
   Menu,
-  X
+  X,
+  MessageCircle,
+  BarChart3
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function LandingPage() {
   const [matrixEffect, setMatrixEffect] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const timer = setTimeout(() => setMatrixEffect(true), 1000)
@@ -427,7 +431,7 @@ export default function LandingPage() {
             </span>
           </h2>
           <p className="text-xl text-white/70 mb-10 max-w-2xl mx-auto">
-            Join thousands who've already eliminated their debt with AI-powered guidance
+            Join thousands who&apos;ve already eliminated their debt with AI-powered guidance
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

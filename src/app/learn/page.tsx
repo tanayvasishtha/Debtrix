@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import {
     BookOpen,
     TrendingUp,
@@ -17,7 +18,13 @@ import {
     ArrowRight,
     Search,
     Menu,
-    X
+    X,
+    PiggyBank,
+    CreditCard,
+    Lightbulb,
+    BarChart3,
+    Wallet,
+    Shield
 } from 'lucide-react'
 
 interface BlogPost {

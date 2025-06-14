@@ -303,4 +303,56 @@ Please try your question again, or ask about specific debt strategies, budgeting
 
         return recommendations
     }
+}
+
+export async function generateFinancialAdvice(
+    userProfile: UserProfile,
+    question: string
+): Promise<string> {
+    try {
+        const prompt = `You are a professional financial advisor. Based on the user's financial profile, provide helpful, actionable advice for their question.
+
+User Profile:
+- Monthly Income: $${userProfile.monthlyIncome}
+- Monthly Expenses: $${userProfile.monthlyExpenses}
+- Total Debt: $${userProfile.totalDebt}
+- Available for Debt Payment: $${userProfile.availableForDebt}
+- Debt-to-Income Ratio: ${userProfile.debtToIncomeRatio}%
+
+Question: ${question}
+
+Please provide specific, actionable financial advice. Keep your response concise but comprehensive.`;
+
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'sonar-pro',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a helpful financial advisor. Provide practical, actionable advice for debt management and personal finance.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: 500,
+                temperature: 0.7,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0]?.message?.content || 'I apologize, but I\'m having trouble connecting to provide personalized advice right now. Please try again later.';
+    } catch {
+        return 'I apologize, but I\'m having trouble connecting to provide personalized advice right now. Please try again later.';
+    }
 } 

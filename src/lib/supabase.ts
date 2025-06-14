@@ -60,9 +60,42 @@ export const supabase = (() => {
 })()
 
 // In-memory storage for demo mode
-let demoDebts: Database['public']['Tables']['debts']['Row'][] = []
+const demoDebts: Database['public']['Tables']['debts']['Row'][] = [
+    {
+        id: 'demo-1',
+        user_id: 'demo-user',
+        name: 'Credit Card',
+        balance: 5000,
+        minimum_payment: 150,
+        interest_rate: 18.99,
+        due_date: '2024-01-15',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    },
+    {
+        id: 'demo-2',
+        user_id: 'demo-user',
+        name: 'Student Loan',
+        balance: 25000,
+        minimum_payment: 300,
+        interest_rate: 6.5,
+        due_date: '2024-01-20',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    }
+]
 let demoAssessment: Database['public']['Tables']['debt_assessment']['Row'] | null = null
-let demoProgress: Database['public']['Tables']['progress_tracking']['Row'][] = []
+const demoProgress: Database['public']['Tables']['progress_tracking']['Row'][] = [
+    {
+        id: 'demo-progress-1',
+        user_id: 'demo-user',
+        debt_id: 'demo-1',
+        payment_amount: 200,
+        payment_date: '2024-01-01',
+        remaining_balance: 4800,
+        created_at: new Date().toISOString()
+    }
+]
 
 // Helper functions for database operations
 export const debtOperations = {
@@ -721,4 +754,106 @@ export const subscriptions = {
             )
             .subscribe()
     },
+}
+
+export async function addDebt(debtData: Omit<Database['public']['Tables']['debts']['Row'], 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Database['public']['Tables']['debts']['Row']> {
+    try {
+        const supabase = createClient<Database>()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            throw new Error('User not authenticated')
+        }
+
+        const { data, error } = await supabase
+            .from('debts')
+            .insert([{
+                ...debtData,
+                user_id: user.id
+            }])
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
+    } catch (error: unknown) {
+        console.error('Error adding debt:', error)
+        throw error
+    }
+}
+
+export async function updateDebt(id: string, updates: Partial<Database['public']['Tables']['debts']['Row']>): Promise<Database['public']['Tables']['debts']['Row']> {
+    try {
+        const supabase = createClient<Database>()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            throw new Error('User not authenticated')
+        }
+
+        const { data, error } = await supabase
+            .from('debts')
+            .update(updates)
+            .eq('id', id)
+            .eq('user_id', user.id)
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
+    } catch (error: unknown) {
+        console.error('Error updating debt:', error)
+        throw error
+    }
+}
+
+export async function addProgress(progressData: Omit<Database['public']['Tables']['progress_tracking']['Row'], 'id' | 'user_id' | 'created_at'>): Promise<Database['public']['Tables']['progress_tracking']['Row']> {
+    try {
+        const supabase = createClient<Database>()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            throw new Error('User not authenticated')
+        }
+
+        const { data, error } = await supabase
+            .from('progress_tracking')
+            .insert([{
+                ...progressData,
+                user_id: user.id
+            }])
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
+    } catch (error: unknown) {
+        console.error('Error adding progress:', error)
+        throw error
+    }
+}
+
+export async function updateProgress(id: string, updates: Partial<Database['public']['Tables']['progress_tracking']['Row']>): Promise<Database['public']['Tables']['progress_tracking']['Row']> {
+    try {
+        const supabase = createClient<Database>()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            throw new Error('User not authenticated')
+        }
+
+        const { data, error } = await supabase
+            .from('progress_tracking')
+            .update(updates)
+            .eq('id', id)
+            .eq('user_id', user.id)
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
+    } catch (error: unknown) {
+        console.error('Error updating progress:', error)
+        throw error
+    }
 } 
