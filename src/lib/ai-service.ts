@@ -351,8 +351,82 @@ Please provide specific, actionable financial advice. Keep your response concise
         }
 
         const data = await response.json();
-        return data.choices[0]?.message?.content || 'I apologize, but I\'m having trouble connecting to provide personalized advice right now. Please try again later.';
+        return data.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate advice at this time. Please try again later.';
     } catch {
         return 'I apologize, but I\'m having trouble connecting to provide personalized advice right now. Please try again later.';
+    }
+}
+
+export async function generateDebtStrategy(
+    debts: Debt[],
+    monthlyIncome: number,
+    monthlyExpenses: number
+): Promise<DebtStrategy> {
+    try {
+        const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
+        const availableForDebt = Math.max(0, monthlyIncome - monthlyExpenses);
+        
+        const prompt = `As a financial advisor, analyze these debts and recommend the best payoff strategy:
+
+Debts:
+${debts.map(debt => `- ${debt.name}: $${debt.balance} at ${debt.interestRate}% APR (min payment: $${debt.minimumPayment})`).join('\n')}
+
+Monthly Income: $${monthlyIncome}
+Monthly Expenses: $${monthlyExpenses}
+Available for Debt Payment: $${availableForDebt}
+
+Recommend either "snowball" (lowest balance first) or "avalanche" (highest interest first) strategy and explain why. Also suggest an optimal extra payment amount.`;
+
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'sonar-pro',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a financial advisor specializing in debt elimination strategies. Provide clear, actionable recommendations.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: 400,
+                temperature: 0.3,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const advice = data.choices[0]?.message?.content || '';
+        
+        // Simple strategy detection based on response
+        const strategy = advice.toLowerCase().includes('avalanche') ? 'avalanche' : 'snowball';
+        const suggestedExtraPayment = Math.min(availableForDebt * 0.8, 200); // Conservative suggestion
+        
+        return {
+            strategy,
+            suggestedExtraPayment,
+            reasoning: advice,
+            estimatedPayoffMonths: calculateEstimatedPayoff(debts, strategy, suggestedExtraPayment)
+        };
+    } catch {
+        // Fallback strategy
+        const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
+        const availableForDebt = Math.max(0, monthlyIncome - monthlyExpenses);
+        
+        return {
+            strategy: totalDebt < 10000 ? 'snowball' : 'avalanche',
+            suggestedExtraPayment: Math.min(availableForDebt * 0.5, 100),
+            reasoning: 'Based on your debt profile, this strategy should help you pay off your debts efficiently.',
+            estimatedPayoffMonths: 24
+        };
     }
 } 

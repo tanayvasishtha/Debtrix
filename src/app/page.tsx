@@ -23,6 +23,7 @@ import {
   BarChart3
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LandingPage() {
   const [matrixEffect, setMatrixEffect] = useState(false)

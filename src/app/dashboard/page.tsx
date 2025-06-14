@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -71,6 +71,34 @@ export default function DashboardPage() {
         due_date: new Date().toISOString().split('T')[0]
     })
 
+    const calculateDebtStrategy = useCallback(() => {
+        if (debts.length === 0) {
+            setCalculation(null)
+            return
+        }
+
+        try {
+            // Filter out invalid debts and prepare inputs
+            const validDebts = debts.filter(debt =>
+                debt.current_balance > 0 &&
+                debt.minimum_payment > 0 &&
+                debt.interest_rate >= 0
+            )
+
+            if (validDebts.length === 0) {
+                setCalculation(null)
+                return
+            }
+
+            const calculator = new DebtCalculator()
+            const result = calculator.calculatePayoffPlan(validDebts, selectedStrategy, extraPayment)
+            setCalculation(result)
+        } catch (error: unknown) {
+            console.error('Error calculating debt strategy:', error)
+            setCalculation(null)
+        }
+    }, [debts, selectedStrategy, extraPayment])
+
     // Load user data on mount
     useEffect(() => {
         loadUserData()
@@ -88,12 +116,8 @@ export default function DashboardPage() {
 
     // Recalculate when debts, strategy, or extra payment changes
     useEffect(() => {
-        if (debts.length > 0) {
-            calculateDebtStrategy()
-        } else {
-            setCalculation(null)
-        }
-    }, [debts.length, selectedStrategy, extraPayment, calculateDebtStrategy])
+        calculateDebtStrategy()
+    }, [calculateDebtStrategy])
 
     const addError = (message: string) => {
         setErrors(prev => [...prev, message])
@@ -229,87 +253,27 @@ export default function DashboardPage() {
         }
     }
 
-    const calculateDebtStrategy = () => {
-        if (debts.length === 0) {
-            setCalculation(null)
-            return
-        }
-
-        try {
-            // Filter out invalid debts and prepare inputs
-            const validDebts = debts.filter(debt =>
-                debt.current_balance > 0 &&
-                debt.minimum_payment > 0 &&
-                debt.interest_rate >= 0
-            )
-
-            if (validDebts.length === 0) {
-                setCalculation(null)
-                return
-            }
-
-            const debtInputs = validDebts.map(debt => ({
-                id: debt.id,
-                name: debt.debt_name,
-                balance: debt.current_balance,
-                interestRate: debt.interest_rate,
-                minimumPayment: debt.minimum_payment
-            }))
-
-            const calculator = new DebtCalculator(debtInputs, extraPayment)
-
-            let result
-            switch (selectedStrategy) {
-                case 'snowball':
-                    result = calculator.calculateSnowball()
-                    break
-                case 'avalanche':
-                    result = calculator.calculateAvalanche()
-                    break
-                case 'hybrid':
-                    result = calculator.calculateHybrid()
-                    break
-                default:
-                    result = calculator.calculateSnowball()
-            }
-
-            setCalculation(result)
-        } catch (error) {
-            console.error('Error calculating debt strategy:', error)
-            setCalculation(null)
-        }
-    }
-
     const handleAddDebt = async () => {
-        if (!user) {
-            console.error('No user found when trying to add debt')
-            return
-        }
-
         try {
-            console.log('=== ADD DEBT DEBUG ===')
-            console.log('User object:', user)
-            console.log('User ID:', user.id)
-            console.log('User email:', user.email)
-            console.log('Is demo user:', user.id?.startsWith('demo-'))
-            console.log('Debt form data:', debtForm)
+            if (!user) {
+                throw new Error('User not authenticated')
+            }
 
             const newDebt = {
-                ...debtForm,
                 user_id: user.id,
+                ...debtForm,
                 original_balance: debtForm.current_balance
             }
 
-            console.log('New debt object to insert:', newDebt)
-            console.log('About to call debtOperations.createDebt...')
+            console.log('Adding debt:', newDebt)
+            const addedDebt = await debtOperations.createDebt(newDebt)
+            console.log('Debt added successfully:', addedDebt)
 
-            const result = await debtOperations.createDebt(newDebt)
-            console.log('Create debt result:', result)
+            // Refresh debts list
+            const updatedDebts = await debtOperations.getUserDebts(user.id)
+            setDebts(updatedDebts || [])
 
-            await loadUserData() // Refresh data
-            setAddDebtOpen(false)
-
-            // Reset form
+            // Reset form and close dialog
             setDebtForm({
                 debt_name: '',
                 debt_type: 'credit_card',
@@ -318,31 +282,24 @@ export default function DashboardPage() {
                 minimum_payment: 0,
                 due_date: new Date().toISOString().split('T')[0]
             })
+            setAddDebtOpen(false)
 
-            console.log('Debt added successfully!')
-        } catch (error: any) {
-            console.error('=== ERROR ADDING DEBT ===')
-            console.error('Error message:', error?.message || 'No message')
-            console.error('Error code:', error?.code || 'No code')
-
-            let errorMessage = 'Failed to add debt. '
-
-            if (error?.message?.includes('current_balance') || error?.message?.includes('schema cache')) {
-                errorMessage = 'Database table not found. Please run the SQL setup script first. Click the yellow "Setup DB" button for instructions.'
-            } else if (error?.message) {
-                errorMessage = `Error: ${error.message}`
-            }
-
-            alert(errorMessage)
+        } catch (error: unknown) {
+            console.error('Error adding debt:', error)
+            alert('Failed to add debt. Please try again.')
         }
     }
 
     const handleDeleteDebt = async (debtId: string) => {
         try {
+            if (!user) return
+
             await debtOperations.deleteDebt(debtId)
-            await loadUserData() // Refresh data
-        } catch (error) {
+            const updatedDebts = await debtOperations.getUserDebts(user.id)
+            setDebts(updatedDebts || [])
+        } catch (error: unknown) {
             console.error('Error deleting debt:', error)
+            alert('Failed to delete debt. Please try again.')
         }
     }
 
@@ -353,11 +310,10 @@ export default function DashboardPage() {
             case 'avalanche':
                 return [...debts].sort((a, b) => b.interest_rate - a.interest_rate)
             case 'hybrid':
-                return [...debts].sort((a, b) => {
-                    const aScore = (a.current_balance / 1000) + a.interest_rate
-                    const bScore = (b.current_balance / 1000) + b.interest_rate
-                    return aScore - bScore
-                })
+                // Hybrid: Small debts first (under $1000), then highest interest
+                const smallDebts = debts.filter(d => d.current_balance < 1000).sort((a, b) => a.current_balance - b.current_balance)
+                const largeDebts = debts.filter(d => d.current_balance >= 1000).sort((a, b) => b.interest_rate - a.interest_rate)
+                return [...smallDebts, ...largeDebts]
             default:
                 return debts
         }
@@ -365,11 +321,12 @@ export default function DashboardPage() {
 
     const getDebtTypeDisplay = (type: DebtType) => {
         const typeMap = {
-            credit_card: 'Credit Card',
-            student_loan: 'Student Loan',
-            personal: 'Personal Loan',
-            mortgage: 'Mortgage',
-            auto_loan: 'Auto Loan'
+            'credit_card': 'Credit Card',
+            'personal_loan': 'Personal Loan',
+            'student_loan': 'Student Loan',
+            'auto_loan': 'Auto Loan',
+            'mortgage': 'Mortgage',
+            'other': 'Other'
         }
         return typeMap[type] || type
     }
@@ -937,7 +894,7 @@ export default function DashboardPage() {
                                                 <Trophy className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
                                                 <h3 className="text-white font-semibold mb-2">Keep Going!</h3>
                                                 <p className="text-gray-300 text-sm">
-                                                    Every payment brings you closer to financial freedom. You've got this!
+                                                    Every payment brings you closer to financial freedom. You&apos;ve got this!
                                                 </p>
                                             </div>
                                         </CardContent>
