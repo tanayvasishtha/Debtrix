@@ -59,47 +59,84 @@ export const supabase = (() => {
     }
 })()
 
-// In-memory storage for demo mode
-const demoDebts: Database['public']['Tables']['debts']['Row'][] = [
-    {
-        id: 'demo-1',
-        user_id: 'demo-user',
-        debt_name: 'Credit Card',
-        debt_type: 'credit_card',
-        current_balance: 5000,
-        original_balance: 6000,
-        minimum_payment: 150,
-        interest_rate: 18.99,
-        due_date: '2024-01-15',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-    },
-    {
-        id: 'demo-2',
-        user_id: 'demo-user',
-        debt_name: 'Student Loan',
-        debt_type: 'student_loan',
-        current_balance: 25000,
-        original_balance: 30000,
-        minimum_payment: 300,
-        interest_rate: 6.5,
-        due_date: '2024-01-20',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+// In-memory storage for demo mode with localStorage persistence
+const DEMO_STORAGE_KEY = 'debtrix_demo_data'
+
+// Initialize demo data from localStorage or use defaults
+const initializeDemoData = () => {
+    if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem(DEMO_STORAGE_KEY)
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored)
+                return {
+                    debts: parsed.debts || [],
+                    assessment: parsed.assessment || null,
+                    progress: parsed.progress || []
+                }
+            } catch (error) {
+                console.error('Error parsing stored demo data:', error)
+            }
+        }
     }
-]
-let demoAssessment: Database['public']['Tables']['debt_assessment']['Row'] | null = null
-const demoProgress: Database['public']['Tables']['progress_tracking']['Row'][] = [
-    {
-        id: 'demo-progress-1',
-        user_id: 'demo-user',
-        debt_id: 'demo-1',
-        payment_amount: 200,
-        payment_date: '2024-01-01',
-        remaining_balance: 4800,
-        created_at: new Date().toISOString()
+
+    // Default demo data
+    return {
+        debts: [
+            {
+                id: 'demo-1',
+                user_id: 'demo-user',
+                debt_name: 'Credit Card',
+                debt_type: 'credit_card',
+                current_balance: 5000,
+                original_balance: 6000,
+                minimum_payment: 150,
+                interest_rate: 18.99,
+                due_date: '2024-01-15',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            },
+            {
+                id: 'demo-2',
+                user_id: 'demo-user',
+                debt_name: 'Student Loan',
+                debt_type: 'student_loan',
+                current_balance: 25000,
+                original_balance: 30000,
+                minimum_payment: 300,
+                interest_rate: 6.5,
+                due_date: '2024-01-20',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }
+        ],
+        assessment: null,
+        progress: [
+            {
+                id: 'demo-progress-1',
+                user_id: 'demo-user',
+                debt_id: 'demo-1',
+                payment_amount: 200,
+                payment_date: '2024-01-01',
+                remaining_balance: 4800,
+                created_at: new Date().toISOString()
+            }
+        ]
     }
-]
+}
+
+// Save demo data to localStorage
+const saveDemoData = (data: { debts: any[], assessment: any, progress: any[] }) => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(data))
+    }
+}
+
+// Initialize demo data
+const demoData = initializeDemoData()
+const demoDebts: Database['public']['Tables']['debts']['Row'][] = demoData.debts
+let demoAssessment: Database['public']['Tables']['debt_assessment']['Row'] | null = demoData.assessment
+const demoProgress: Database['public']['Tables']['progress_tracking']['Row'][] = demoData.progress
 
 // Helper functions for database operations
 export const debtOperations = {
@@ -150,14 +187,20 @@ export const debtOperations = {
         console.log('getUserDebts called with userId:', userId)
         console.log('supabase client available:', !!supabase)
 
-        // Check if user ID is demo/local format
-        if (userId?.startsWith('demo-') || userId?.startsWith('local-') || !supabase) {
-            console.log('Demo mode: returning demo debts for user:', userId)
+        // Check if user ID is explicitly demo format (only demo users should get demo data)
+        if (userId?.startsWith('demo-') || userId?.startsWith('local-')) {
+            console.log('Demo mode: returning demo debts for demo user:', userId)
             // Return demo debts with the current user's ID
             return demoDebts.map(debt => ({
                 ...debt,
                 user_id: userId
             }))
+        }
+
+        // If no supabase client but user is NOT a demo user, return empty array
+        if (!supabase) {
+            console.log('No Supabase client available for real user, returning empty array')
+            return []
         }
 
         try {
@@ -218,6 +261,10 @@ export const debtOperations = {
                 updated_at: new Date().toISOString()
             } as Database['public']['Tables']['debts']['Row']
             demoDebts.push(newDebt)
+
+            // Save to localStorage
+            saveDemoData({ debts: demoDebts, assessment: demoAssessment, progress: demoProgress })
+
             console.log('Demo debt created:', newDebt)
             return newDebt
         }
@@ -258,6 +305,10 @@ export const debtOperations = {
             const index = demoDebts.findIndex(debt => debt.id === id)
             if (index !== -1) {
                 demoDebts[index] = { ...demoDebts[index], ...updates, updated_at: new Date().toISOString() }
+
+                // Save to localStorage
+                saveDemoData({ debts: demoDebts, assessment: demoAssessment, progress: demoProgress })
+
                 return demoDebts[index]
             }
             throw new Error('Debt not found')
@@ -281,6 +332,9 @@ export const debtOperations = {
             const index = demoDebts.findIndex(debt => debt.id === id)
             if (index !== -1) {
                 demoDebts.splice(index, 1)
+
+                // Save to localStorage
+                saveDemoData({ debts: demoDebts, assessment: demoAssessment, progress: demoProgress })
             }
             return
         }
@@ -297,8 +351,8 @@ export const debtOperations = {
 export const assessmentOperations = {
     // Get user assessment
     async getUserAssessment(userId: string) {
-        // Check if user ID is demo/local format
-        if (userId?.startsWith('demo-') || userId?.startsWith('local-') || !supabase) {
+        // Check if user ID is explicitly demo format (only demo users should get demo data)
+        if (userId?.startsWith('demo-') || userId?.startsWith('local-')) {
             // Demo mode: return demo assessment with correct user ID
             if (demoAssessment) {
                 return {
@@ -306,6 +360,12 @@ export const assessmentOperations = {
                     user_id: userId
                 }
             }
+            return null
+        }
+
+        // If no supabase client but user is NOT a demo user, return null
+        if (!supabase) {
+            console.log('No Supabase client available for real user assessment')
             return null
         }
 
@@ -424,13 +484,19 @@ export const progressOperations = {
 
     // Get user's overall progress
     async getUserProgress(userId: string) {
-        // Check if user ID is demo/local format
-        if (userId?.startsWith('demo-') || userId?.startsWith('local-') || !supabase) {
+        // Check if user ID is explicitly demo format (only demo users should get demo data)
+        if (userId?.startsWith('demo-') || userId?.startsWith('local-')) {
             // Demo mode: return demo progress with correct user ID
             return demoProgress.map(progress => ({
                 ...progress,
                 user_id: userId
             }))
+        }
+
+        // If no supabase client but user is NOT a demo user, return empty array
+        if (!supabase) {
+            console.log('No Supabase client available for real user progress')
+            return []
         }
 
         try {
@@ -934,5 +1000,19 @@ export async function updateProgress(id: string, updates: Partial<Database['publ
     } catch (error: unknown) {
         console.error('Error updating progress:', error)
         throw error
+    }
+}
+
+// Reset demo data to defaults
+export const resetDemoData = () => {
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem(DEMO_STORAGE_KEY)
+        // Reinitialize with defaults
+        const defaultData = initializeDemoData()
+        demoDebts.length = 0
+        demoDebts.push(...defaultData.debts)
+        demoAssessment = defaultData.assessment
+        demoProgress.length = 0
+        demoProgress.push(...defaultData.progress)
     }
 } 
