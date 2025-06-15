@@ -743,88 +743,124 @@ export const authHelpers = {
         }
     },
 
-    // Sign up
+    // Sign up - Support both real Supabase and demo mode
     async signUp(email: string, password: string) {
-        if (!supabase) {
-            // Demo mode: create a mock user
-            console.log('Demo mode: Creating mock user for signup')
-            const mockUser = {
-                id: `demo-${Date.now()}`,
-                email,
-                created_at: new Date().toISOString(),
-                app_metadata: {},
-                user_metadata: {},
-                aud: 'authenticated',
-                role: 'authenticated'
-            }
+        console.log('=== SIGN UP DEBUG ===')
+        console.log('Supabase client exists:', !!supabase)
+        console.log('Email:', email)
 
-            return {
-                user: mockUser,
-                session: {
-                    access_token: 'demo-token',
-                    refresh_token: 'demo-refresh',
-                    expires_in: 3600,
-                    token_type: 'bearer',
-                    user: mockUser
+        // First try real Supabase if available
+        if (supabase) {
+            try {
+                console.log('Attempting real Supabase signup...')
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                })
+
+                if (error) {
+                    console.error('Supabase signup error:', error)
+                    throw error
                 }
+
+                console.log('Real Supabase signup successful')
+                return data
+            } catch (error) {
+                console.error('Real signup failed:', error)
+                throw error
             }
         }
 
-        const { data, error } = await supabase.auth.signUp({
+        // Fallback to demo mode if no Supabase client
+        console.log('Demo mode: Creating mock user for signup')
+        const mockUser = {
+            id: `demo-${email.replace('@', '-').replace('.', '-')}-${Date.now()}`,
             email,
-            password,
-        })
-        if (error) throw error
-        return data
+            created_at: new Date().toISOString(),
+            app_metadata: {},
+            user_metadata: {},
+            aud: 'authenticated',
+            role: 'authenticated'
+        }
+
+        // Store in localStorage for persistence
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('debtrix_user', JSON.stringify(mockUser))
+        }
+
+        return {
+            user: mockUser,
+            session: {
+                access_token: 'demo-token',
+                refresh_token: 'demo-refresh',
+                expires_in: 3600,
+                token_type: 'bearer',
+                user: mockUser
+            }
+        }
     },
 
-    // Sign in
+    // Sign in - Support both real Supabase and demo mode
     async signIn(email: string, password: string) {
-        console.log('=== SUPABASE SIGN IN DEBUG ===')
+        console.log('=== SIGN IN DEBUG ===')
         console.log('Supabase client exists:', !!supabase)
+        console.log('Email:', email)
 
-        if (!supabase) {
-            // Demo mode: create a mock user for any email/password
-            console.log('Demo mode: Creating mock user for signin')
-            const mockUser = {
-                id: `demo-${email.replace('@', '-').replace('.', '-')}`,
-                email,
-                created_at: new Date().toISOString(),
-                app_metadata: {},
-                user_metadata: {},
-                aud: 'authenticated',
-                role: 'authenticated'
-            }
+        // First try real Supabase if available
+        if (supabase) {
+            try {
+                console.log('Attempting real Supabase signin...')
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                })
 
-            // Store in localStorage for persistence
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('debtrix_user', JSON.stringify(mockUser))
-            }
-
-            return {
-                user: mockUser,
-                session: {
-                    access_token: 'demo-token',
-                    refresh_token: 'demo-refresh',
-                    expires_in: 3600,
-                    token_type: 'bearer',
-                    user: mockUser
+                if (error) {
+                    console.error('Supabase signin error:', error)
+                    throw error
                 }
+
+                console.log('Real Supabase signin successful:', data.user?.email)
+
+                // Also store in localStorage for consistency
+                if (typeof window !== 'undefined' && data.user) {
+                    localStorage.setItem('debtrix_user', JSON.stringify(data.user))
+                }
+
+                return data
+            } catch (error) {
+                console.error('Real signin failed:', error)
+                throw error
             }
         }
 
-        console.log('Supabase URL:', supabaseUrl)
-        console.log('Email:', email)
-        console.log('Password length:', password?.length || 0)
-
-        const { data, error } = await supabase.auth.signInWithPassword({
+        // Fallback to demo mode if no Supabase client
+        console.log('Demo mode: Creating mock user for signin')
+        const mockUser = {
+            id: `demo-${email.replace('@', '-').replace('.', '-')}`,
             email,
-            password,
-        })
+            created_at: new Date().toISOString(),
+            app_metadata: {},
+            user_metadata: {},
+            aud: 'authenticated',
+            role: 'authenticated'
+        }
 
-        console.log('Supabase auth response:', { data, error })
-        if (error) throw error
-        return data
+        // Store in localStorage for persistence
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('debtrix_user', JSON.stringify(mockUser))
+        }
+
+        return {
+            user: mockUser,
+            session: {
+                access_token: 'demo-token',
+                refresh_token: 'demo-refresh',
+                expires_in: 3600,
+                token_type: 'bearer',
+                user: mockUser
+            }
+        }
     },
 
     // Sign out

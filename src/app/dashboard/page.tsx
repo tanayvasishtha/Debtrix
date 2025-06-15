@@ -213,18 +213,21 @@ export default function DashboardPage() {
                         });
                     }
 
-                    // Create demo user for demonstration
+                    // Create demo user for demonstration - always use 'demo-user' for consistency
                     currentUser = {
-                        id: generateUUID(),
+                        id: 'demo-user', // Use consistent demo user ID
                         email: 'demo@debtrix.com',
                         app_metadata: {},
                         user_metadata: {},
                         aud: '',
                         created_at: new Date().toISOString()
                     }
-                    console.log('Using demo user with UUID:', currentUser.id)
+                    console.log('Created demo user with UUID:', currentUser.id)
+
+                    // Store in localStorage
+                    localStorage.setItem('debtrix_user', JSON.stringify(currentUser))
                 } else {
-                    // Redirect to auth page for real users
+                    // For any non-demo case, redirect to auth page  
                     console.log('No authenticated user found, redirecting to auth')
                     if (typeof window !== 'undefined') {
                         window.location.href = '/auth'
