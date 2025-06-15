@@ -296,24 +296,31 @@ export default function AssessmentPage() {
             let errorMessage = 'Failed to save assessment. '
 
             // Check specific error types
-            if (error && typeof error === 'object' && 'code' in error) {
+            if (error && typeof error === 'object' && 'message' in error) {
                 const errorObj = error as Record<string, unknown>;
                 const errorCode = errorObj.code
-                const errorMessage_ = errorObj.message || ''
+                const errorMessage_ = String(errorObj.message || '')
 
-                if (errorCode === '23514' || String(errorMessage_).includes('check constraint')) {
-                    errorMessage = 'Invalid data format. Please check your form inputs and try again. If the problem persists, please contact support.'
-                } else if (errorCode === '42501' || String(errorMessage_).includes('row-level security policy')) {
+                // Handle API key errors specifically
+                if (errorMessage_.includes('Invalid API key') || errorMessage_.includes('Double check your Supabase')) {
+                    errorMessage = 'Invalid Supabase API key detected. Please run "node setup-supabase-credentials.js" to fix this issue, then get your real API key from your Supabase dashboard.'
+                } else if (errorMessage_.includes('JWT') || errorMessage_.includes('token')) {
+                    errorMessage = 'Authentication token issue. Please check your Supabase configuration and try again.'
+                } else if (errorCode === '23514' || errorMessage_.includes('check constraint')) {
+                    errorMessage = 'Invalid data format. Please check your form inputs and try again.'
+                } else if (errorCode === '42501' || errorMessage_.includes('row-level security policy')) {
                     errorMessage = 'Database security policy violation. Please contact support if this persists.'
-                } else if (String(errorMessage_).includes('current_balance') ||
-                    String(errorMessage_).includes('schema cache') ||
-                    String(errorMessage_).includes('relation') ||
-                    String(errorMessage_).includes('does not exist') ||
+                } else if (errorMessage_.includes('current_balance') ||
+                    errorMessage_.includes('schema cache') ||
+                    errorMessage_.includes('relation') ||
+                    errorMessage_.includes('does not exist') ||
                     errorCode === 'PGRST204' ||
                     errorCode === 'PGRST106') {
                     errorMessage = 'Database connection issue. Please try again or contact support if this persists.'
+                } else if (errorMessage_.includes('Failed to fetch') || errorMessage_.includes('network')) {
+                    errorMessage = 'Network connection issue. Please check your internet connection and try again.'
                 } else if (errorMessage_) {
-                    errorMessage = `Error: ${String(errorMessage_)}`
+                    errorMessage = `Error: ${errorMessage_}`
                 } else {
                     errorMessage = 'Unknown error occurred. Please check the console for details and try again.'
                 }
