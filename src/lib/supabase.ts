@@ -446,6 +446,7 @@ export const assessmentOperations = {
             demoAssessment = {
                 ...assessment,
                 id: 'demo-assessment-' + Date.now(),
+                target_debt_free_date: null, // Add required field
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             } as Database['public']['Tables']['debt_assessment']['Row']

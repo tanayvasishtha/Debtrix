@@ -52,7 +52,6 @@ export interface Database {
                     target_debt_free_date: string | null
                     monthly_income: number
                     monthly_expenses: number
-                    assessment_completed: boolean
                     created_at: string
                     updated_at: string
                 }
@@ -65,7 +64,6 @@ export interface Database {
                     target_debt_free_date?: string | null
                     monthly_income: number
                     monthly_expenses: number
-                    assessment_completed?: boolean
                     created_at?: string
                     updated_at?: string
                 }
@@ -78,7 +76,6 @@ export interface Database {
                     target_debt_free_date?: string | null
                     monthly_income?: number
                     monthly_expenses?: number
-                    assessment_completed?: boolean
                     created_at?: string
                     updated_at?: string
                 }

@@ -214,8 +214,7 @@ export default function AssessmentPage() {
                 extra_payment_capacity: extraPaymentCapacity,
                 monthly_income: monthlyIncome,
                 monthly_expenses: monthlyExpenses,
-                recommended_method: recommendedMethod as 'snowball' | 'avalanche' | 'hybrid',
-                assessment_completed: true
+                recommended_method: recommendedMethod as 'snowball' | 'avalanche' | 'hybrid'
             }
 
             console.log('=== ASSESSMENT SAVE DEBUG ===')
