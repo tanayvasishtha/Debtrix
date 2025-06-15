@@ -249,11 +249,10 @@ export const debtOperations = {
         console.log('Supabase client exists:', !!supabase)
         console.log('User ID being used:', debt.user_id)
         console.log('Is demo user:', debt.user_id?.startsWith('demo-'))
-        console.log('Debt data to insert:', debt)
 
-        if (!supabase) {
-            console.log('❌ Running in demo mode - Supabase client not available')
-            // Demo mode: add to demo array
+        // Handle demo users first (regardless of Supabase availability)
+        if (debt.user_id?.startsWith('demo-') || debt.user_id?.startsWith('local-')) {
+            console.log('Demo user: creating debt in demo mode')
             const newDebt = {
                 ...debt,
                 id: 'demo-debt-' + Date.now(),
@@ -269,12 +268,12 @@ export const debtOperations = {
             return newDebt
         }
 
-        // Check if user is demo user with real Supabase
-        if (debt.user_id?.startsWith('demo-')) {
-            console.log('⚠️ Demo user with real Supabase - this might cause RLS issues')
+        // Handle real users
+        if (!supabase) {
+            throw new Error('Database connection not available for real users')
         }
 
-        console.log('Attempting to insert into Supabase debts table...')
+        console.log('Real user: attempting to insert into Supabase debts table...')
 
         try {
             const { data, error } = await supabase
@@ -287,14 +286,14 @@ export const debtOperations = {
 
             if (error) {
                 console.error('Supabase insert error:', error.message, 'Code:', error.code)
-                throw error
+                throw new Error(`Database error: ${error.message}`)
             }
 
-            console.log('Debt created successfully:', data)
+            console.log('Real debt created successfully:', data)
             return data
         } catch (err: any) {
             console.error('Exception during debt creation:', err?.message || err)
-            throw err
+            throw new Error(err instanceof Error ? err.message : 'Failed to create debt')
         }
     },
 
@@ -437,25 +436,52 @@ export const assessmentOperations = {
 
     // Create or update assessment
     async upsertAssessment(assessment: Database['public']['Tables']['debt_assessment']['Insert']) {
-        if (!supabase) {
-            // Demo mode: store in demo variable
+        console.log('=== UPSERT ASSESSMENT DEBUG ===')
+        console.log('User ID:', assessment.user_id)
+        console.log('Is demo user:', assessment.user_id?.startsWith('demo-'))
+
+        // Handle demo users first (regardless of Supabase availability)
+        if (assessment.user_id?.startsWith('demo-') || assessment.user_id?.startsWith('local-')) {
+            console.log('Demo user: saving assessment in demo mode')
             demoAssessment = {
                 ...assessment,
                 id: 'demo-assessment-' + Date.now(),
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             } as Database['public']['Tables']['debt_assessment']['Row']
+
+            // Save to localStorage
+            saveDemoData({ debts: demoDebts, assessment: demoAssessment, progress: demoProgress })
+
+            console.log('Demo assessment saved:', demoAssessment)
             return demoAssessment
         }
 
-        const { data, error } = await supabase
-            .from('debt_assessment')
-            .upsert(assessment, { onConflict: 'user_id' })
-            .select()
-            .single()
+        // Handle real users
+        if (!supabase) {
+            throw new Error('Database connection not available for real users')
+        }
 
-        if (error) throw error
-        return data
+        console.log('Real user: attempting to save assessment to Supabase...')
+
+        try {
+            const { data, error } = await supabase
+                .from('debt_assessment')
+                .upsert(assessment, { onConflict: 'user_id' })
+                .select()
+                .single()
+
+            if (error) {
+                console.error('Supabase assessment error:', error)
+                throw new Error(`Database error: ${error.message}`)
+            }
+
+            console.log('Real assessment saved successfully:', data)
+            return data
+        } catch (err) {
+            console.error('Exception during assessment save:', err)
+            throw new Error(err instanceof Error ? err.message : 'Failed to save assessment')
+        }
     },
 }
 
