@@ -314,21 +314,73 @@ export default function DashboardPage() {
             setAddDebtOpen(false)
 
         } catch (error: unknown) {
-            console.error('Error adding debt:', error)
-            alert('Failed to add debt. Please try again.')
+            // Enhanced error handling to avoid empty object errors
+            let errorMessage = 'Failed to add debt. Please try again.'
+
+            if (error instanceof Error) {
+                errorMessage = error.message
+                console.error('Error adding debt:', error.message)
+            } else if (error && typeof error === 'object') {
+                // Handle malformed error objects
+                const errorObj = error as any
+                if (errorObj.message) {
+                    errorMessage = errorObj.message
+                } else if (errorObj.error) {
+                    errorMessage = errorObj.error
+                }
+                console.error('Error adding debt (object):', {
+                    error: errorObj,
+                    message: errorMessage,
+                    type: typeof error
+                })
+            } else {
+                console.error('Error adding debt (unknown):', error, typeof error)
+            }
+
+            alert(errorMessage)
         }
     }
 
     const handleDeleteDebt = async (debtId: string) => {
         try {
-            if (!user) return
+            if (!user) {
+                console.error('No user found for debt deletion')
+                return
+            }
 
+            console.log('Attempting to delete debt:', debtId)
             await debtOperations.deleteDebt(debtId)
+
+            // Reload the debts list
             const updatedDebts = await debtOperations.getUserDebts(user.id)
             setDebts(updatedDebts || [])
+
+            console.log('Debt deleted successfully:', debtId)
         } catch (error: unknown) {
-            console.error('Error deleting debt:', error)
-            alert('Failed to delete debt. Please try again.')
+            // Enhanced error handling to avoid empty object errors
+            let errorMessage = 'Failed to delete debt. Please try again.'
+
+            if (error instanceof Error) {
+                errorMessage = error.message
+                console.error('Error deleting debt:', error.message)
+            } else if (error && typeof error === 'object') {
+                // Handle malformed error objects
+                const errorObj = error as any
+                if (errorObj.message) {
+                    errorMessage = errorObj.message
+                } else if (errorObj.error) {
+                    errorMessage = errorObj.error
+                }
+                console.error('Error deleting debt (object):', {
+                    error: errorObj,
+                    message: errorMessage,
+                    type: typeof error
+                })
+            } else {
+                console.error('Error deleting debt (unknown):', error, typeof error)
+            }
+
+            alert(errorMessage)
         }
     }
 

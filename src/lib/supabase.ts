@@ -327,24 +327,42 @@ export const debtOperations = {
 
     // Delete a debt
     async deleteDebt(id: string) {
-        if (!supabase) {
-            // Demo mode: remove from demo array
+        console.log('Deleting debt:', id)
+
+        // Handle demo debts
+        if (id.startsWith('demo-')) {
             const index = demoDebts.findIndex(debt => debt.id === id)
             if (index !== -1) {
                 demoDebts.splice(index, 1)
-
-                // Save to localStorage
                 saveDemoData({ debts: demoDebts, assessment: demoAssessment, progress: demoProgress })
+                console.log('Demo debt deleted:', id)
+                return { success: true }
             }
-            return
+            throw new Error('Demo debt not found')
         }
 
-        const { error } = await supabase
-            .from('debts')
-            .delete()
-            .eq('id', id)
+        // Handle real debts
+        if (!supabase) {
+            throw new Error('Database connection not available')
+        }
 
-        if (error) throw error
+        try {
+            const { error } = await supabase
+                .from('debts')
+                .delete()
+                .eq('id', id)
+
+            if (error) {
+                console.error('Error deleting debt:', error)
+                throw new Error(`Database error: ${error.message}`)
+            }
+
+            console.log('Real debt deleted:', id)
+            return { success: true }
+        } catch (err) {
+            console.error('Exception in deleteDebt:', err)
+            throw new Error(err instanceof Error ? err.message : 'Failed to delete debt')
+        }
     },
 }
 
