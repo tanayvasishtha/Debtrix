@@ -266,8 +266,29 @@ export default function DashboardPage() {
     const handleAddDebt = async () => {
         try {
             setAddingDebt(true)
+            console.log('=== ADD DEBT DEBUG ===')
+            console.log('User:', user)
+            console.log('Debt form data:', debtForm)
+
             if (!user) {
                 throw new Error('User not authenticated')
+            }
+
+            // Validate form data
+            if (!debtForm.debt_name || debtForm.debt_name.trim() === '') {
+                throw new Error('Please enter a debt name')
+            }
+
+            if (!debtForm.current_balance || debtForm.current_balance <= 0) {
+                throw new Error('Please enter a valid current balance greater than 0')
+            }
+
+            if (!debtForm.minimum_payment || debtForm.minimum_payment <= 0) {
+                throw new Error('Please enter a valid minimum payment greater than 0')
+            }
+
+            if (debtForm.interest_rate < 0) {
+                throw new Error('Please enter a valid interest rate (0 or greater)')
             }
 
             const newDebt = {
@@ -281,7 +302,9 @@ export default function DashboardPage() {
             console.log('Debt added successfully:', addedDebt)
 
             // Refresh debts list
+            console.log('Refreshing debts list for user:', user.id)
             const updatedDebts = await debtOperations.getUserDebts(user.id)
+            console.log('Updated debts received:', updatedDebts)
             setDebts((updatedDebts as Debt[]) || [])
 
             // Reset form and close dialog
@@ -294,6 +317,9 @@ export default function DashboardPage() {
                 due_date: new Date().toISOString().split('T')[0]
             })
             setAddDebtOpen(false)
+
+            // Success - no need to show error message
+            console.log('Debt addition completed successfully')
 
         } catch (error: unknown) {
             // Enhanced error handling to avoid empty object errors
