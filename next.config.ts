@@ -98,12 +98,12 @@ const nextConfig: NextConfig = {
 
   /* TypeScript Configuration */
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // Enable TypeScript checking for production
   },
 
   /* ESLint Configuration */
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false, // Enable ESLint checking for production
   },
 
   /* Webpack Optimizations */

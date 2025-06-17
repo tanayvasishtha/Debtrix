@@ -18,13 +18,7 @@ import {
     ArrowRight,
     Search,
     Menu,
-    X,
-    PiggyBank,
-    CreditCard,
-    Lightbulb,
-    BarChart3,
-    Wallet,
-    Shield
+    X
 } from 'lucide-react'
 
 interface BlogPost {

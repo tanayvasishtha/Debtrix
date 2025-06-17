@@ -47,11 +47,17 @@ export interface Database {
                     id: string
                     user_id: string
                     stress_level: number
-                    extra_payment_capacity: number
-                    recommended_method: DebtMethod
-                    target_debt_free_date: string | null
+                    financial_knowledge: string
                     monthly_income: number
                     monthly_expenses: number
+                    available_for_debt: number
+                    emergency_fund: number | null
+                    debt_consolidation_interest: boolean
+                    extra_payment_capacity: number
+                    primary_goal: string
+                    preferred_strategy: string | null
+                    risk_tolerance: string
+                    recommended_method: DebtMethod
                     created_at: string
                     updated_at: string
                 }
@@ -59,11 +65,17 @@ export interface Database {
                     id?: string
                     user_id: string
                     stress_level: number
-                    extra_payment_capacity: number
-                    recommended_method: DebtMethod
-                    target_debt_free_date?: string | null
+                    financial_knowledge: string
                     monthly_income: number
                     monthly_expenses: number
+                    available_for_debt: number
+                    emergency_fund?: number | null
+                    debt_consolidation_interest?: boolean
+                    extra_payment_capacity?: number
+                    primary_goal: string
+                    preferred_strategy?: string | null
+                    risk_tolerance: string
+                    recommended_method: DebtMethod
                     created_at?: string
                     updated_at?: string
                 }
@@ -71,11 +83,17 @@ export interface Database {
                     id?: string
                     user_id?: string
                     stress_level?: number
-                    extra_payment_capacity?: number
-                    recommended_method?: DebtMethod
-                    target_debt_free_date?: string | null
+                    financial_knowledge?: string
                     monthly_income?: number
                     monthly_expenses?: number
+                    available_for_debt?: number
+                    emergency_fund?: number | null
+                    debt_consolidation_interest?: boolean
+                    extra_payment_capacity?: number
+                    primary_goal?: string
+                    preferred_strategy?: string | null
+                    risk_tolerance?: string
+                    recommended_method?: DebtMethod
                     created_at?: string
                     updated_at?: string
                 }
@@ -87,8 +105,8 @@ export interface Database {
                     debt_id: string
                     payment_amount: number
                     payment_date: string
-                    remaining_balance: number
                     payment_type: PaymentType
+                    balance_after: number
                     notes: string | null
                     created_at: string
                 }
@@ -98,8 +116,8 @@ export interface Database {
                     debt_id: string
                     payment_amount: number
                     payment_date: string
-                    remaining_balance: number
                     payment_type: PaymentType
+                    balance_after: number
                     notes?: string | null
                     created_at?: string
                 }
@@ -109,8 +127,8 @@ export interface Database {
                     debt_id?: string
                     payment_amount?: number
                     payment_date?: string
-                    remaining_balance?: number
                     payment_type?: PaymentType
+                    balance_after?: number
                     notes?: string | null
                     created_at?: string
                 }
@@ -119,25 +137,28 @@ export interface Database {
                 Row: {
                     id: string
                     user_id: string
-                    user_message: string
-                    ai_response: string
-                    chat_session_id: string
+                    session_id: string | null
+                    message_type: string
+                    content: string
+                    metadata: any | null
                     created_at: string
                 }
                 Insert: {
                     id?: string
                     user_id: string
-                    user_message: string
-                    ai_response: string
-                    chat_session_id: string
+                    session_id?: string | null
+                    message_type: string
+                    content: string
+                    metadata?: any | null
                     created_at?: string
                 }
                 Update: {
                     id?: string
                     user_id?: string
-                    user_message?: string
-                    ai_response?: string
-                    chat_session_id?: string
+                    session_id?: string | null
+                    message_type?: string
+                    content?: string
+                    metadata?: any | null
                     created_at?: string
                 }
             }
@@ -148,8 +169,10 @@ export interface Database {
                     slug: string
                     content: string
                     excerpt: string | null
-                    category: BlogCategory
-                    featured_image_url: string | null
+                    author: string | null
+                    category: string
+                    tags: string[] | null
+                    featured_image: string | null
                     published: boolean
                     created_at: string
                     updated_at: string
@@ -160,8 +183,10 @@ export interface Database {
                     slug: string
                     content: string
                     excerpt?: string | null
-                    category: BlogCategory
-                    featured_image_url?: string | null
+                    author?: string | null
+                    category: string
+                    tags?: string[] | null
+                    featured_image?: string | null
                     published?: boolean
                     created_at?: string
                     updated_at?: string
@@ -172,8 +197,10 @@ export interface Database {
                     slug?: string
                     content?: string
                     excerpt?: string | null
-                    category?: BlogCategory
-                    featured_image_url?: string | null
+                    author?: string | null
+                    category?: string
+                    tags?: string[] | null
+                    featured_image?: string | null
                     published?: boolean
                     created_at?: string
                     updated_at?: string
@@ -197,9 +224,9 @@ export type DebtMethod =
     | 'hybrid'
 
 export type PaymentType =
-    | 'minimum'
+    | 'regular'
     | 'extra'
-    | 'lump_sum'
+    | 'minimum'
 
 export type BlogCategory =
     | 'debt_basics'

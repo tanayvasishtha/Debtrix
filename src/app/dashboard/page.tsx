@@ -47,14 +47,7 @@ export default function DashboardPage() {
     const [user, setUser] = useState<{ id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string } | null>(null)
     const [debts, setDebts] = useState<Debt[]>([])
     const [assessment, setAssessment] = useState<Assessment | null>(null)
-    const [recentProgress, setRecentProgress] = useState<ProgressEntry[]>([])
     const [loading, setLoading] = useState(true)
-    const [dataLoading, setDataLoading] = useState({
-        debts: false,
-        assessment: false,
-        progress: false,
-        calculations: false
-    })
     const [selectedStrategy, setSelectedStrategy] = useState<DebtMethod>('snowball')
     const [extraPayment, setExtraPayment] = useState(0)
     const [calculation, setCalculation] = useState<DebtCalculation | null>(null)
@@ -150,15 +143,6 @@ export default function DashboardPage() {
         }, 5000)
     }
 
-    const LoadingSpinner = () => (
-        <div className="flex items-center justify-center p-8">
-            <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 border-2 border-[#00FF41] border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-gray-400">Loading...</span>
-            </div>
-        </div>
-    )
-
     const loadUserData = async () => {
         try {
             setLoading(true)
@@ -204,15 +188,6 @@ export default function DashboardPage() {
                 }
 
                 if (isDemo) {
-                    // Generate a proper UUID for demo user
-                    const generateUUID = () => {
-                        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                            const r = Math.random() * 16 | 0;
-                            const v = c == 'x' ? r : (r & 0x3 | 0x8);
-                            return v.toString(16);
-                        });
-                    }
-
                     // Create demo user for demonstration - always use 'demo-user' for consistency
                     currentUser = {
                         id: 'demo-user', // Use consistent demo user ID
@@ -250,7 +225,7 @@ export default function DashboardPage() {
             // Handle debts result
             if (results[0].status === 'fulfilled') {
                 const userDebts = results[0].value as Debt[] | null
-                setDebts(userDebts || [])
+                setDebts((userDebts as Debt[]) || [])
                 console.log('Debts loaded:', userDebts?.length || 0)
             } else {
                 console.error('Failed to load debts:', results[0].reason)
@@ -300,7 +275,7 @@ export default function DashboardPage() {
 
             // Refresh debts list
             const updatedDebts = await debtOperations.getUserDebts(user.id)
-            setDebts(updatedDebts || [])
+            setDebts((updatedDebts as Debt[]) || [])
 
             // Reset form and close dialog
             setDebtForm({
@@ -322,11 +297,11 @@ export default function DashboardPage() {
                 console.error('Error adding debt:', error.message)
             } else if (error && typeof error === 'object') {
                 // Handle malformed error objects
-                const errorObj = error as any
+                const errorObj = error as Record<string, unknown>
                 if (errorObj.message) {
-                    errorMessage = errorObj.message
+                    errorMessage = String(errorObj.message)
                 } else if (errorObj.error) {
-                    errorMessage = errorObj.error
+                    errorMessage = String(errorObj.error)
                 }
                 console.error('Error adding debt (object):', {
                     error: errorObj,
@@ -353,7 +328,7 @@ export default function DashboardPage() {
 
             // Reload the debts list
             const updatedDebts = await debtOperations.getUserDebts(user.id)
-            setDebts(updatedDebts || [])
+            setDebts((updatedDebts as Debt[]) || [])
 
             console.log('Debt deleted successfully:', debtId)
         } catch (error: unknown) {
@@ -365,11 +340,11 @@ export default function DashboardPage() {
                 console.error('Error deleting debt:', error.message)
             } else if (error && typeof error === 'object') {
                 // Handle malformed error objects
-                const errorObj = error as any
+                const errorObj = error as Record<string, unknown>
                 if (errorObj.message) {
-                    errorMessage = errorObj.message
+                    errorMessage = String(errorObj.message)
                 } else if (errorObj.error) {
-                    errorMessage = errorObj.error
+                    errorMessage = String(errorObj.error)
                 }
                 console.error('Error deleting debt (object):', {
                     error: errorObj,
@@ -401,25 +376,14 @@ export default function DashboardPage() {
     }
 
     const getDebtTypeDisplay = (type: DebtType) => {
-        const typeMap = {
+        const typeMap: Record<DebtType, string> = {
             'credit_card': 'Credit Card',
-            'personal_loan': 'Personal Loan',
+            'personal': 'Personal Loan',
             'student_loan': 'Student Loan',
             'auto_loan': 'Auto Loan',
-            'mortgage': 'Mortgage',
-            'other': 'Other'
+            'mortgage': 'Mortgage'
         }
         return typeMap[type] || type
-    }
-
-    const getProgressColor = (debt: Debt) => {
-        const originalBalance = debt.original_balance || debt.current_balance || 0
-        const currentBalance = debt.current_balance || 0
-        const progress = originalBalance > 0 ? ((originalBalance - currentBalance) / originalBalance) * 100 : 0
-        if (progress >= 75) return 'bg-green-500'
-        if (progress >= 50) return 'bg-yellow-500'
-        if (progress >= 25) return 'bg-orange-500'
-        return 'bg-red-500'
     }
 
     const totalDebt = debts.reduce((sum, debt) => sum + (debt.current_balance || 0), 0)
@@ -428,14 +392,6 @@ export default function DashboardPage() {
     const overallProgress = totalOriginalDebt > 0 ? ((totalOriginalDebt - totalDebt) / totalOriginalDebt) * 100 : 0
 
     const strategyDebts = getStrategyOrder(selectedStrategy)
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <div className="text-white">Loading your debt dashboard...</div>
-            </div>
-        )
-    }
 
     // Main loading state
     if (loading) {
@@ -866,45 +822,6 @@ export default function DashboardPage() {
                                             </div>
                                         </CardContent>
                                     </Card>
-
-                                    {/* Progress Tracking */}
-                                    {recentProgress.length > 0 && (
-                                        <Card className="bg-gray-800/50 border-gray-700 mt-6">
-                                            <CardHeader>
-                                                <CardTitle className="text-white">Recent Progress</CardTitle>
-                                                <CardDescription className="text-gray-400">Your latest payment activity</CardDescription>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-3">
-                                                    {recentProgress.map((progress, index) => (
-                                                        <div key={progress.id} className="flex items-center justify-between p-3 bg-gray-700/50 rounded">
-                                                            <div>
-                                                                <p className="text-white font-medium">
-                                                                    {new Date(progress.payment_date).toLocaleDateString('en-US', {
-                                                                        year: 'numeric',
-                                                                        month: 'long',
-                                                                        day: 'numeric'
-                                                                    })}
-                                                                </p>
-                                                                <p className="text-gray-400 text-sm">
-                                                                    {progress.payment_type === 'minimum' ? 'Minimum Payment' :
-                                                                        progress.payment_type === 'extra' ? 'Extra Payment' : 'Lump Sum'}
-                                                                </p>
-                                                            </div>
-                                                            <div className="text-right">
-                                                                <p className="font-semibold text-green-400">
-                                                                    ${(progress.payment_amount || 0).toLocaleString()}
-                                                                </p>
-                                                                <p className="text-gray-400 text-sm">
-                                                                    Balance: ${(progress.remaining_balance || 0).toLocaleString()}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    )}
                                 </div>
 
                                 {/* Sidebar */}

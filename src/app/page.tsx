@@ -5,30 +5,24 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  TrendingDown,
-  Brain,
-  Calculator,
-  Target,
-  Users,
-  Award,
-  ChevronRight,
-  Play,
   ArrowRight,
+  CheckCircle,
+  Sparkles,
+  TrendingUp,
+  DollarSign,
+  Calculator,
+  Brain,
+  Users,
   Zap,
-  Shield,
-  BookOpen,
   Menu,
   X,
-  MessageCircle,
-  BarChart3
+  Shield
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LandingPage() {
   const [matrixEffect, setMatrixEffect] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
     const timer = setTimeout(() => setMatrixEffect(true), 1000)
@@ -328,7 +322,7 @@ export default function LandingPage() {
               <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 h-full transition-all duration-300 hover:border-purple-500/30 hover:bg-gray-800/70 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/10">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-600 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                    <TrendingDown className="w-6 h-6 text-white transition-all duration-300 group-hover:scale-110" />
+                    <TrendingUp className="w-6 h-6 text-white transition-all duration-300 group-hover:scale-110" />
                   </div>
                   <h3 className="text-xl font-semibold text-white transition-colors duration-300 group-hover:text-purple-300">Visual Progress</h3>
                 </div>
@@ -359,7 +353,7 @@ export default function LandingPage() {
               <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 h-full transition-all duration-300 hover:border-cyan-500/30 hover:bg-gray-800/70 hover:scale-[1.02] hover:shadow-2xl hover:shadow-cyan-500/10">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                    <BookOpen className="w-6 h-6 text-white transition-all duration-300 group-hover:scale-110" />
+                    <Calculator className="w-6 h-6 text-white transition-all duration-300 group-hover:scale-110" />
                   </div>
                   <h3 className="text-xl font-semibold text-white transition-colors duration-300 group-hover:text-cyan-300">Financial Education</h3>
                 </div>

@@ -160,26 +160,16 @@ export default function AssessmentPage() {
             // Get current user (create demo user if needed)
             let currentUser = await authHelpers.getCurrentUser()
             if (!currentUser) {
-                // Generate a proper UUID for demo user
-                const generateUUID = () => {
-                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                        const r = Math.random() * 16 | 0;
-                        const v = c == 'x' ? r : (r & 0x3 | 0x8);
-                        return v.toString(16);
-                    });
-                }
-
+                // Create demo user with demo- prefix so it's treated as demo data
                 currentUser = {
-                    id: generateUUID(),
+                    id: 'demo-user-' + Date.now(),
                     email: 'demo@debtrix.com',
                     app_metadata: {},
                     user_metadata: {},
                     aud: '',
                     created_at: new Date().toISOString()
                 } as { id: string; email: string; app_metadata: Record<string, unknown>; user_metadata: Record<string, unknown>; aud: string; created_at: string }
-                if (currentUser) {
-                    console.log('Created demo user with UUID:', currentUser.id)
-                }
+                console.log('Created demo user with ID:', currentUser.id)
             }
 
             if (!currentUser) {
@@ -211,9 +201,16 @@ export default function AssessmentPage() {
             const assessmentToSave = {
                 user_id: currentUser.id,
                 stress_level: assessmentData.step1.financialStress,
-                extra_payment_capacity: extraPaymentCapacity,
+                financial_knowledge: 'beginner' as const,
                 monthly_income: monthlyIncome,
                 monthly_expenses: monthlyExpenses,
+                available_for_debt: extraPaymentCapacity,
+                emergency_fund: null,
+                debt_consolidation_interest: false,
+                extra_payment_capacity: extraPaymentCapacity,
+                primary_goal: 'balanced_approach' as const,
+                preferred_strategy: assessmentData.step4.preferredMethod === 'ai-recommended' ? null : assessmentData.step4.preferredMethod,
+                risk_tolerance: assessmentData.step4.riskTolerance || 'medium' as const,
                 recommended_method: recommendedMethod as 'snowball' | 'avalanche' | 'hybrid'
             }
 

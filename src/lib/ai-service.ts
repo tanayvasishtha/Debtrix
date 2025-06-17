@@ -306,18 +306,24 @@ Please try your question again, or ask about specific debt strategies, budgeting
 }
 
 export async function generateFinancialAdvice(
-    userProfile: UserProfile,
+    userProfile: {
+        monthlyIncome?: number
+        monthlyExpenses?: number
+        totalDebt?: number
+        availableForDebt?: number
+        debtToIncomeRatio?: number
+    },
     question: string
 ): Promise<string> {
     try {
         const prompt = `You are a professional financial advisor. Based on the user's financial profile, provide helpful, actionable advice for their question.
 
 User Profile:
-- Monthly Income: $${userProfile.monthlyIncome}
-- Monthly Expenses: $${userProfile.monthlyExpenses}
-- Total Debt: $${userProfile.totalDebt}
-- Available for Debt Payment: $${userProfile.availableForDebt}
-- Debt-to-Income Ratio: ${userProfile.debtToIncomeRatio}%
+- Monthly Income: $${userProfile.monthlyIncome || 0}
+- Monthly Expenses: $${userProfile.monthlyExpenses || 0}
+- Total Debt: $${userProfile.totalDebt || 0}
+- Available for Debt Payment: $${userProfile.availableForDebt || 0}
+- Debt-to-Income Ratio: ${userProfile.debtToIncomeRatio || 0}%
 
 Question: ${question}
 
@@ -357,6 +363,34 @@ Please provide specific, actionable financial advice. Keep your response concise
     }
 }
 
+interface Debt {
+    id: string
+    name: string
+    balance: number
+    interestRate: number
+    minimumPayment: number
+}
+
+interface DebtStrategy {
+    method: string
+    strategy: string
+    reasoning: string
+    nextSteps: string[]
+    suggestedExtraPayment: number
+    estimatedPayoffMonths: number
+}
+
+function calculateEstimatedPayoff(debts: Debt[], strategy: string, extraPayment: number): number {
+    // Simple calculation - in a real app you'd use the debt calculator
+    const totalBalance = debts.reduce((sum, debt) => sum + debt.balance, 0)
+    const totalMinimum = debts.reduce((sum, debt) => sum + debt.minimumPayment, 0)
+    const totalPayment = totalMinimum + extraPayment
+
+    if (totalPayment <= 0) return 0
+
+    return Math.ceil(totalBalance / totalPayment)
+}
+
 export async function generateDebtStrategy(
     debts: Debt[],
     monthlyIncome: number,
@@ -365,7 +399,7 @@ export async function generateDebtStrategy(
     try {
         const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
         const availableForDebt = Math.max(0, monthlyIncome - monthlyExpenses);
-        
+
         const prompt = `As a financial advisor, analyze these debts and recommend the best payoff strategy:
 
 Debts:
@@ -406,26 +440,41 @@ Recommend either "snowball" (lowest balance first) or "avalanche" (highest inter
 
         const data = await response.json();
         const advice = data.choices[0]?.message?.content || '';
-        
+
         // Simple strategy detection based on response
         const strategy = advice.toLowerCase().includes('avalanche') ? 'avalanche' : 'snowball';
         const suggestedExtraPayment = Math.min(availableForDebt * 0.8, 200); // Conservative suggestion
-        
+
         return {
+            method: strategy,
             strategy,
             suggestedExtraPayment,
             reasoning: advice,
+            nextSteps: [
+                'Review your current debts and prioritize them',
+                'Set up automatic payments for minimum amounts',
+                'Allocate extra payment to priority debt',
+                'Track progress monthly'
+            ],
             estimatedPayoffMonths: calculateEstimatedPayoff(debts, strategy, suggestedExtraPayment)
         };
     } catch {
         // Fallback strategy
         const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
         const availableForDebt = Math.max(0, monthlyIncome - monthlyExpenses);
-        
+
+        const fallbackStrategy = totalDebt < 10000 ? 'snowball' : 'avalanche';
         return {
-            strategy: totalDebt < 10000 ? 'snowball' : 'avalanche',
+            method: fallbackStrategy,
+            strategy: fallbackStrategy,
             suggestedExtraPayment: Math.min(availableForDebt * 0.5, 100),
             reasoning: 'Based on your debt profile, this strategy should help you pay off your debts efficiently.',
+            nextSteps: [
+                'Start by listing all your debts',
+                'Make minimum payments on all debts',
+                'Focus extra payments on priority debt',
+                'Monitor your progress regularly'
+            ],
             estimatedPayoffMonths: 24
         };
     }
