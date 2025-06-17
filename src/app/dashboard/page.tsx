@@ -558,12 +558,11 @@ export default function DashboardPage() {
                                                 <Input
                                                     id="current_balance"
                                                     type="number"
-                                                    value={debtForm.current_balance || ''}
+                                                    value={debtForm.current_balance}
                                                     onChange={(e) => {
-                                                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
-                                                        setDebtForm(prev => ({ ...prev, current_balance: value }))
+                                                        setDebtForm(prev => ({ ...prev, current_balance: e.target.value }))
                                                     }}
-                                                    placeholder="5000"
+                                                    placeholder="Enter amount"
                                                     min="0"
                                                     step="0.01"
                                                     className="bg-gray-700 border-gray-600"
@@ -574,12 +573,11 @@ export default function DashboardPage() {
                                                 <Input
                                                     id="interest_rate"
                                                     type="number"
-                                                    value={debtForm.interest_rate || ''}
+                                                    value={debtForm.interest_rate}
                                                     onChange={(e) => {
-                                                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
-                                                        setDebtForm(prev => ({ ...prev, interest_rate: value }))
+                                                        setDebtForm(prev => ({ ...prev, interest_rate: e.target.value }))
                                                     }}
-                                                    placeholder="18.99"
+                                                    placeholder="Enter rate"
                                                     min="0"
                                                     max="100"
                                                     step="0.01"
@@ -593,12 +591,11 @@ export default function DashboardPage() {
                                                 <Input
                                                     id="minimum_payment"
                                                     type="number"
-                                                    value={debtForm.minimum_payment || ''}
+                                                    value={debtForm.minimum_payment}
                                                     onChange={(e) => {
-                                                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
-                                                        setDebtForm(prev => ({ ...prev, minimum_payment: value }))
+                                                        setDebtForm(prev => ({ ...prev, minimum_payment: e.target.value }))
                                                     }}
-                                                    placeholder="150"
+                                                    placeholder="Enter payment"
                                                     min="0"
                                                     step="0.01"
                                                     className="bg-gray-700 border-gray-600"
