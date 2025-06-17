@@ -36,9 +36,9 @@ type ProgressEntry = Database['public']['Tables']['progress_tracking']['Row']
 interface DebtFormData {
     debt_name: string
     debt_type: DebtType
-    current_balance: number
-    interest_rate: number
-    minimum_payment: number
+    current_balance: string
+    interest_rate: string
+    minimum_payment: string
     due_date: string
 }
 
@@ -58,9 +58,9 @@ export default function DashboardPage() {
     const [debtForm, setDebtForm] = useState<DebtFormData>({
         debt_name: '',
         debt_type: 'credit_card',
-        current_balance: 0,
-        interest_rate: 0,
-        minimum_payment: 0,
+        current_balance: '',
+        interest_rate: '',
+        minimum_payment: '',
         due_date: new Date().toISOString().split('T')[0]
     })
 
@@ -272,8 +272,13 @@ export default function DashboardPage() {
 
             const newDebt = {
                 user_id: user.id,
-                ...debtForm,
-                original_balance: debtForm.current_balance
+                debt_name: debtForm.debt_name,
+                debt_type: debtForm.debt_type,
+                current_balance: parseFloat(debtForm.current_balance) || 0,
+                interest_rate: parseFloat(debtForm.interest_rate) || 0,
+                minimum_payment: parseFloat(debtForm.minimum_payment) || 0,
+                due_date: debtForm.due_date,
+                original_balance: parseFloat(debtForm.current_balance) || 0
             }
 
             console.log('Adding debt:', newDebt)
@@ -288,9 +293,9 @@ export default function DashboardPage() {
             setDebtForm({
                 debt_name: '',
                 debt_type: 'credit_card',
-                current_balance: 0,
-                interest_rate: 0,
-                minimum_payment: 0,
+                current_balance: '',
+                interest_rate: '',
+                minimum_payment: '',
                 due_date: new Date().toISOString().split('T')[0]
             })
             setAddDebtOpen(false)
