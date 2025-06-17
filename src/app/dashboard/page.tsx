@@ -636,10 +636,7 @@ export default function DashboardPage() {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex justify-end space-x-2">
-                                            <Button variant="outline" onClick={() => setAddDebtOpen(false)}>
-                                                Cancel
-                                            </Button>
+                                        <div className="flex justify-end">
                                             <Button
                                                 onClick={handleAddDebt}
                                                 className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500"
