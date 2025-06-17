@@ -36,9 +36,9 @@ type ProgressEntry = Database['public']['Tables']['progress_tracking']['Row']
 interface DebtFormData {
     debt_name: string
     debt_type: DebtType
-    current_balance: string
-    interest_rate: string
-    minimum_payment: string
+    current_balance: number
+    interest_rate: number
+    minimum_payment: number
     due_date: string
 }
 
@@ -58,9 +58,9 @@ export default function DashboardPage() {
     const [debtForm, setDebtForm] = useState<DebtFormData>({
         debt_name: '',
         debt_type: 'credit_card',
-        current_balance: '',
-        interest_rate: '',
-        minimum_payment: '',
+        current_balance: 0,
+        interest_rate: 0,
+        minimum_payment: 0,
         due_date: new Date().toISOString().split('T')[0]
     })
 
@@ -266,43 +266,17 @@ export default function DashboardPage() {
     const handleAddDebt = async () => {
         try {
             setAddingDebt(true)
-
-            // Basic form validation
-            if (!debtForm.debt_name.trim()) {
-                addError('Please enter a debt name')
-                setAddingDebt(false)
-                return
-            }
-
-            if (!debtForm.current_balance || parseFloat(debtForm.current_balance) <= 0) {
-                addError('Please enter a valid current balance')
-                setAddingDebt(false)
-                return
-            }
-
-            if (!debtForm.minimum_payment || parseFloat(debtForm.minimum_payment) <= 0) {
-                addError('Please enter a valid minimum payment')
-                setAddingDebt(false)
-                return
-            }
-
             if (!user) {
                 throw new Error('User not authenticated')
             }
 
             const newDebt = {
                 user_id: user.id,
-                debt_name: debtForm.debt_name.trim(),
-                debt_type: debtForm.debt_type,
-                current_balance: parseFloat(debtForm.current_balance),
-                interest_rate: parseFloat(debtForm.interest_rate) || 0,
-                minimum_payment: parseFloat(debtForm.minimum_payment),
-                due_date: debtForm.due_date,
-                original_balance: parseFloat(debtForm.current_balance)
+                ...debtForm,
+                original_balance: debtForm.current_balance
             }
 
             console.log('Adding debt:', newDebt)
-            console.log('Form data before submission:', debtForm)
             const addedDebt = await debtOperations.createDebt(newDebt)
             console.log('Debt added successfully:', addedDebt)
 
@@ -314,9 +288,9 @@ export default function DashboardPage() {
             setDebtForm({
                 debt_name: '',
                 debt_type: 'credit_card',
-                current_balance: '',
-                interest_rate: '',
-                minimum_payment: '',
+                current_balance: 0,
+                interest_rate: 0,
+                minimum_payment: 0,
                 due_date: new Date().toISOString().split('T')[0]
             })
             setAddDebtOpen(false)
@@ -545,17 +519,6 @@ export default function DashboardPage() {
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
-                                        {/* Error Display */}
-                                        {errors.length > 0 && (
-                                            <div className="space-y-2">
-                                                {errors.map((error, index) => (
-                                                    <div key={index} className="p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
-                                                        <p className="text-red-300 text-sm">{error}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
                                         <div>
                                             <Label htmlFor="debt_name">Debt Name</Label>
                                             <Input
@@ -590,11 +553,12 @@ export default function DashboardPage() {
                                                 <Input
                                                     id="current_balance"
                                                     type="number"
-                                                    value={debtForm.current_balance}
+                                                    value={debtForm.current_balance || ''}
                                                     onChange={(e) => {
-                                                        setDebtForm(prev => ({ ...prev, current_balance: e.target.value }))
+                                                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+                                                        setDebtForm(prev => ({ ...prev, current_balance: value }))
                                                     }}
-                                                    placeholder="Enter amount"
+                                                    placeholder="5000"
                                                     min="0"
                                                     step="0.01"
                                                     className="bg-gray-700 border-gray-600"
@@ -605,11 +569,12 @@ export default function DashboardPage() {
                                                 <Input
                                                     id="interest_rate"
                                                     type="number"
-                                                    value={debtForm.interest_rate}
+                                                    value={debtForm.interest_rate || ''}
                                                     onChange={(e) => {
-                                                        setDebtForm(prev => ({ ...prev, interest_rate: e.target.value }))
+                                                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+                                                        setDebtForm(prev => ({ ...prev, interest_rate: value }))
                                                     }}
-                                                    placeholder="Enter rate"
+                                                    placeholder="18.99"
                                                     min="0"
                                                     max="100"
                                                     step="0.01"
@@ -623,11 +588,12 @@ export default function DashboardPage() {
                                                 <Input
                                                     id="minimum_payment"
                                                     type="number"
-                                                    value={debtForm.minimum_payment}
+                                                    value={debtForm.minimum_payment || ''}
                                                     onChange={(e) => {
-                                                        setDebtForm(prev => ({ ...prev, minimum_payment: e.target.value }))
+                                                        const value = e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+                                                        setDebtForm(prev => ({ ...prev, minimum_payment: value }))
                                                     }}
-                                                    placeholder="Enter payment"
+                                                    placeholder="150"
                                                     min="0"
                                                     step="0.01"
                                                     className="bg-gray-700 border-gray-600"
@@ -644,23 +610,28 @@ export default function DashboardPage() {
                                                 />
                                             </div>
                                         </div>
-                                        <Button
-                                            onClick={handleAddDebt}
-                                            className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500"
-                                            disabled={addingDebt}
-                                        >
-                                            {addingDebt ? (
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                    Adding Debt...
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <Plus className="w-4 h-4 mr-2" />
-                                                    Add Debt
-                                                </>
-                                            )}
-                                        </Button>
+                                        <div className="flex justify-end space-x-2">
+                                            <Button variant="outline" onClick={() => setAddDebtOpen(false)}>
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                onClick={handleAddDebt}
+                                                className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500"
+                                                disabled={addingDebt}
+                                            >
+                                                {addingDebt ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                        Adding Debt...
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <Plus className="w-4 h-4 mr-2" />
+                                                        Add Debt
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </DialogContent>
                             </Dialog>
