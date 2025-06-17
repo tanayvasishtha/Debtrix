@@ -612,28 +612,23 @@ export default function DashboardPage() {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex justify-end space-x-2">
-                                            <Button variant="outline" onClick={() => setAddDebtOpen(false)}>
-                                                Cancel
-                                            </Button>
-                                            <Button
-                                                onClick={handleAddDebt}
-                                                className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500"
-                                                disabled={addingDebt}
-                                            >
-                                                {addingDebt ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                        Adding Debt...
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <Plus className="w-4 h-4 mr-2" />
-                                                        Add Debt
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            onClick={handleAddDebt}
+                                            className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500"
+                                            disabled={addingDebt}
+                                        >
+                                            {addingDebt ? (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                    Adding Debt...
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <Plus className="w-4 h-4 mr-2" />
+                                                    Add Debt
+                                                </>
+                                            )}
+                                        </Button>
                                     </div>
                                 </DialogContent>
                             </Dialog>
