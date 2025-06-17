@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { authHelpers } from '@/lib/supabase'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 
 export default function AuthPage() {
     const router = useRouter()
@@ -71,8 +71,13 @@ export default function AuthPage() {
             const data = await authHelpers.signIn(signInData.email, signInData.password)
             console.log('Sign in successful:', data)
 
-            setMessage({ type: 'success', text: 'Successfully signed in! Redirecting...' })
-            setTimeout(() => router.push('/dashboard'), 1500)
+            setMessage({ type: 'success', text: 'Successfully signed in! Setting up your dashboard...' })
+
+            // Smoother transition with loading state
+            setTimeout(() => {
+                setMessage({ type: 'success', text: 'Redirecting to dashboard...' })
+                setTimeout(() => router.push('/dashboard'), 800)
+            }, 1200)
         } catch (error: unknown) {
             console.error('Sign in error:', error)
             if (error instanceof Error) {
@@ -80,9 +85,9 @@ export default function AuthPage() {
             } else {
                 setError('An unexpected error occurred')
             }
-        } finally {
             setLoading(false)
         }
+        // Don't set loading to false here - keep it true during redirect
     }
 
     const handleSignUp = async (e: React.FormEvent) => {
@@ -124,7 +129,8 @@ export default function AuthPage() {
     }
 
     const handleDemoAccess = () => {
-        setMessage({ type: 'success', text: 'Accessing demo mode...' })
+        setLoading(true)
+        setMessage({ type: 'success', text: 'Initializing demo mode...' })
 
         // Create demo user for localStorage
         const demoUser = {
@@ -136,7 +142,10 @@ export default function AuthPage() {
         }
         localStorage.setItem('debtrix_user', JSON.stringify(demoUser))
 
-        setTimeout(() => router.push('/dashboard?demo=true'), 1000)
+        setTimeout(() => {
+            setMessage({ type: 'success', text: 'Loading demo dashboard...' })
+            setTimeout(() => router.push('/dashboard?demo=true'), 800)
+        }, 1000)
     }
 
     return (
@@ -181,10 +190,20 @@ export default function AuthPage() {
                         <Button
                             onClick={handleDemoAccess}
                             variant="outline"
-                            className="border-green-500 text-green-400 hover:bg-green-500/10"
+                            className="border-green-500 text-green-400 hover:bg-green-500/10 transition-all duration-200"
+                            disabled={loading}
                         >
-                            Access Demo
-                            <ArrowRight className="w-4 h-4 ml-2" />
+                            {loading ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Loading...
+                                </div>
+                            ) : (
+                                <>
+                                    Access Demo
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>
@@ -201,13 +220,17 @@ export default function AuthPage() {
                         <CardContent>
                             {/* Message Display */}
                             {message && (
-                                <div className={`mb-4 p-3 rounded-lg border ${message.type === 'success'
+                                <div className={`mb-4 p-3 rounded-lg border transition-all duration-300 ${message.type === 'success'
                                     ? 'bg-green-900/30 border-green-500/30 text-green-300'
                                     : 'bg-red-900/30 border-red-500/30 text-red-300'
                                     }`}>
                                     <div className="flex items-center gap-2">
                                         {message.type === 'success' ? (
-                                            <CheckCircle className="w-4 h-4" />
+                                            loading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <CheckCircle className="w-4 h-4" />
+                                            )
                                         ) : (
                                             <AlertCircle className="w-4 h-4" />
                                         )}
@@ -217,7 +240,7 @@ export default function AuthPage() {
                             )}
 
                             {error && (
-                                <div className="mb-4 p-3 rounded-lg border bg-red-900/30 border-red-500/30 text-red-300">
+                                <div className="mb-4 p-3 rounded-lg border bg-red-900/30 border-red-500/30 text-red-300 transition-all duration-300">
                                     <div className="flex items-center gap-2">
                                         <AlertCircle className="w-4 h-4" />
                                         <p className="text-sm">{error}</p>
@@ -278,10 +301,17 @@ export default function AuthPage() {
 
                                         <Button
                                             type="submit"
-                                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                                            className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white font-medium transition-all duration-200"
                                             disabled={loading}
                                         >
-                                            {loading ? 'Signing In...' : 'Sign In'}
+                                            {loading ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Signing in...
+                                                </div>
+                                            ) : (
+                                                'Sign In'
+                                            )}
                                         </Button>
                                     </form>
                                 </TabsContent>
@@ -345,10 +375,17 @@ export default function AuthPage() {
 
                                         <Button
                                             type="submit"
-                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                            className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white font-medium transition-all duration-200"
                                             disabled={loading}
                                         >
-                                            {loading ? 'Creating Account...' : 'Create Account'}
+                                            {loading ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Creating account...
+                                                </div>
+                                            ) : (
+                                                'Create Account'
+                                            )}
                                         </Button>
                                     </form>
                                 </TabsContent>

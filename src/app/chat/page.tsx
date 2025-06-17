@@ -253,9 +253,13 @@ export default function ChatPage() {
                                     </div>
                                     <Card className="bg-gray-800/50 border-gray-700">
                                         <CardContent className="p-4">
-                                            <div className="flex items-center gap-2 text-gray-400">
-                                                <Sparkles className="w-4 h-4 animate-pulse" />
-                                                AI is thinking...
+                                            <div className="flex items-center gap-3 text-gray-400">
+                                                <div className="flex gap-1">
+                                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                                </div>
+                                                <span className="animate-pulse">AI is analyzing your question...</span>
                                             </div>
                                         </CardContent>
                                     </Card>

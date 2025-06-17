@@ -265,10 +265,12 @@ export default function AssessmentPage() {
 
             console.log('Assessment and debts saved successfully!')
 
-            // Redirect to dashboard with success
-            if (typeof window !== 'undefined') {
-                window.location.href = '/dashboard?assessment=completed'
-            }
+            // Show success and redirect smoothly
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    window.location.href = '/dashboard?assessment=completed'
+                }
+            }, 1500)
 
         } catch (error: unknown) {
             console.error('=== ASSESSMENT SAVE ERROR ===')
@@ -327,9 +329,9 @@ export default function AssessmentPage() {
             }
 
             alert(errorMessage)
-        } finally {
             setIsLoading(false)
         }
+        // Don't set loading to false on success - keep it during redirect
     }
 
     // Helper function to map debt types
@@ -792,7 +794,7 @@ export default function AssessmentPage() {
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Analyzing...
+                                        Creating your personalized plan...
                                     </>
                                 ) : (
                                     <>

@@ -64,6 +64,11 @@ export default function DashboardPage() {
         due_date: new Date().toISOString().split('T')[0]
     })
 
+    // Add loading states for different operations
+    const [initialLoading, setInitialLoading] = useState(true)
+    const [dataLoading, setDataLoading] = useState(false)
+    const [addingDebt, setAddingDebt] = useState(false)
+
     const calculateDebtStrategy = useCallback(() => {
         if (debts.length === 0) {
             setCalculation(null)
@@ -145,7 +150,7 @@ export default function DashboardPage() {
 
     const loadUserData = async () => {
         try {
-            setLoading(true)
+            setDataLoading(true)
             setErrors([])
 
             // Get current user - prioritize Supabase auth with proper error handling
@@ -253,12 +258,14 @@ export default function DashboardPage() {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
             console.error('Dashboard load error:', errorMessage)
         } finally {
-            setLoading(false)
+            setDataLoading(false)
+            setInitialLoading(false)
         }
     }
 
     const handleAddDebt = async () => {
         try {
+            setAddingDebt(true)
             if (!user) {
                 throw new Error('User not authenticated')
             }
@@ -297,22 +304,19 @@ export default function DashboardPage() {
                 console.error('Error adding debt:', error.message)
             } else if (error && typeof error === 'object') {
                 // Handle malformed error objects
-                const errorObj = error as Record<string, unknown>
-                if (errorObj.message) {
-                    errorMessage = String(errorObj.message)
-                } else if (errorObj.error) {
-                    errorMessage = String(errorObj.error)
+                try {
+                    errorMessage = JSON.stringify(error)
+                } catch {
+                    errorMessage = 'Failed to add debt. Please try again.'
                 }
-                console.error('Error adding debt (object):', {
-                    error: errorObj,
-                    message: errorMessage,
-                    type: typeof error
-                })
+                console.error('Error adding debt (object):', error)
             } else {
-                console.error('Error adding debt (unknown):', error, typeof error)
+                console.error('Error adding debt (unknown):', error)
             }
 
-            alert(errorMessage)
+            addError(errorMessage)
+        } finally {
+            setAddingDebt(false)
         }
     }
 
@@ -393,21 +397,14 @@ export default function DashboardPage() {
 
     const strategyDebts = getStrategyOrder(selectedStrategy)
 
-    // Main loading state
-    if (loading) {
+    // Show loading screen for initial load
+    if (initialLoading) {
         return (
             <div className="min-h-screen bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-6">
-                        <div className="absolute inset-0 border-4 border-[#00FF41]/30 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-[#00FF41] border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">
-                        Loading <span className="text-[#00FF41]">Dashboard</span>
-                    </h2>
-                    <p className="text-gray-400 animate-pulse">
-                        Preparing your financial data...
-                    </p>
+                    <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <h2 className="text-xl font-semibold text-white mb-2">Loading Your Dashboard</h2>
+                    <p className="text-gray-400">Setting up your personalized debt management experience...</p>
                 </div>
             </div>
         )
@@ -415,6 +412,16 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gray-900">
+            {/* Loading overlay for data operations */}
+            {dataLoading && (
+                <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-white font-medium">Updating your data...</p>
+                    </div>
+                </div>
+            )}
+
             {/* Navigation */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
                 <div className="container mx-auto px-6 py-4">
@@ -607,8 +614,22 @@ export default function DashboardPage() {
                                             <Button variant="outline" onClick={() => setAddDebtOpen(false)}>
                                                 Cancel
                                             </Button>
-                                            <Button onClick={handleAddDebt} className="bg-green-600 hover:bg-green-700">
-                                                Add Debt
+                                            <Button
+                                                onClick={handleAddDebt}
+                                                className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500"
+                                                disabled={addingDebt}
+                                            >
+                                                {addingDebt ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                        Adding Debt...
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <Plus className="w-4 h-4 mr-2" />
+                                                        Add Debt
+                                                    </>
+                                                )}
                                             </Button>
                                         </div>
                                     </div>
