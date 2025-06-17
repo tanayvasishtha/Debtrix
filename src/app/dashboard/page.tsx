@@ -266,22 +266,43 @@ export default function DashboardPage() {
     const handleAddDebt = async () => {
         try {
             setAddingDebt(true)
+
+            // Basic form validation
+            if (!debtForm.debt_name.trim()) {
+                addError('Please enter a debt name')
+                setAddingDebt(false)
+                return
+            }
+
+            if (!debtForm.current_balance || parseFloat(debtForm.current_balance) <= 0) {
+                addError('Please enter a valid current balance')
+                setAddingDebt(false)
+                return
+            }
+
+            if (!debtForm.minimum_payment || parseFloat(debtForm.minimum_payment) <= 0) {
+                addError('Please enter a valid minimum payment')
+                setAddingDebt(false)
+                return
+            }
+
             if (!user) {
                 throw new Error('User not authenticated')
             }
 
             const newDebt = {
                 user_id: user.id,
-                debt_name: debtForm.debt_name,
+                debt_name: debtForm.debt_name.trim(),
                 debt_type: debtForm.debt_type,
-                current_balance: parseFloat(debtForm.current_balance) || 0,
+                current_balance: parseFloat(debtForm.current_balance),
                 interest_rate: parseFloat(debtForm.interest_rate) || 0,
-                minimum_payment: parseFloat(debtForm.minimum_payment) || 0,
+                minimum_payment: parseFloat(debtForm.minimum_payment),
                 due_date: debtForm.due_date,
-                original_balance: parseFloat(debtForm.current_balance) || 0
+                original_balance: parseFloat(debtForm.current_balance)
             }
 
             console.log('Adding debt:', newDebt)
+            console.log('Form data before submission:', debtForm)
             const addedDebt = await debtOperations.createDebt(newDebt)
             console.log('Debt added successfully:', addedDebt)
 
@@ -524,6 +545,17 @@ export default function DashboardPage() {
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-4">
+                                        {/* Error Display */}
+                                        {errors.length > 0 && (
+                                            <div className="space-y-2">
+                                                {errors.map((error, index) => (
+                                                    <div key={index} className="p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
+                                                        <p className="text-red-300 text-sm">{error}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         <div>
                                             <Label htmlFor="debt_name">Debt Name</Label>
                                             <Input
