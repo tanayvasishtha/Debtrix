@@ -68,6 +68,12 @@ export default function DashboardPage() {
     const [initialLoading, setInitialLoading] = useState(true)
     const [dataLoading, setDataLoading] = useState(false)
     const [addingDebt, setAddingDebt] = useState(false)
+    const [isClient, setIsClient] = useState(false)
+
+    // Prevent hydration mismatches
+    useEffect(() => {
+        setIsClient(true)
+    }, [])
 
     const calculateDebtStrategy = useCallback(() => {
         if (debts.length === 0) {
@@ -158,15 +164,12 @@ export default function DashboardPage() {
 
             // First check Supabase auth with comprehensive error handling
             try {
-                console.log('Attempting to get current user from Supabase...')
                 currentUser = await authHelpers.getCurrentUser()
                 if (currentUser) {
                     console.log('User authenticated via Supabase:', currentUser.email)
-                } else {
-                    console.log('No Supabase user found, checking alternatives...')
                 }
             } catch (supabaseError: unknown) {
-                console.log('Supabase auth check failed:', supabaseError instanceof Error ? supabaseError.message : supabaseError)
+                console.warn('Supabase auth check failed:', supabaseError instanceof Error ? supabaseError.message : supabaseError)
                 // Don't throw here, just log and continue to fallbacks
             }
 
@@ -176,7 +179,6 @@ export default function DashboardPage() {
                 if (localUser) {
                     try {
                         currentUser = JSON.parse(localUser)
-                        console.log('Using local user:', currentUser.email)
                     } catch (e) {
                         console.error('Error parsing local user:', e)
                         localStorage.removeItem('debtrix_user')
@@ -266,9 +268,7 @@ export default function DashboardPage() {
     const handleAddDebt = async () => {
         try {
             setAddingDebt(true)
-            console.log('=== ADD DEBT DEBUG ===')
-            console.log('User:', user)
-            console.log('Debt form data:', debtForm)
+            // Add debt debug info
 
             if (!user) {
                 throw new Error('User not authenticated')

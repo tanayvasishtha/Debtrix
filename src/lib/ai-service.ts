@@ -332,7 +332,7 @@ Please provide specific, actionable financial advice. Keep your response concise
         const response = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -414,7 +414,7 @@ Recommend either "snowball" (lowest balance first) or "avalanche" (highest inter
         const response = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PERPLEXITY_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({

@@ -42,13 +42,17 @@ export const supabase = (() => {
             }
         })
 
-        // Test the connection (don't return null on failure, just log)
-        client.from('debts').select('id').limit(1).then(
-            () => console.log('Supabase client created and connected successfully'),
-            (error) => {
-                console.warn('Supabase connection test failed (this is OK for demo users):', error)
-            }
-        )
+        // Only test connection on server-side to avoid CORS issues
+        if (typeof window === 'undefined') {
+            client.from('debts').select('id').limit(1).then(
+                () => console.log('Supabase client created and connected successfully'),
+                (error) => {
+                    console.warn('Supabase connection test failed (this is OK for demo users):', error)
+                }
+            )
+        } else {
+            console.log('Supabase client created successfully (client-side)')
+        }
 
         return client
     } catch (error) {
